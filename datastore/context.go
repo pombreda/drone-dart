@@ -5,8 +5,10 @@ import (
 	"github.com/russross/meddler"
 )
 
+const reqkey = "db"
+
 // NewContext returns a Context whose Value method returns the
-// application's database connection.
+// application's data storage objects.
 func NewContext(parent context.Context, db meddler.DB) context.Context {
 	return &wrapper{parent, db}
 }
@@ -18,15 +20,13 @@ type wrapper struct {
 
 // Value returns the named key from the context.
 func (c *wrapper) Value(key interface{}) interface{} {
-	const reqkey = "db"
 	if key == reqkey {
 		return c.db
 	}
 	return c.Context.Value(key)
 }
 
-// DB returns the sql.DB associated with this context.
-func DB(c context.Context) meddler.DB {
-	const reqkey = "db"
+// FromContext returns the sql.DB associated with this context.
+func FromContext(c context.Context) meddler.DB {
 	return c.Value(reqkey).(meddler.DB)
 }

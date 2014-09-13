@@ -8,13 +8,13 @@ const reqkey = "blobstore"
 
 // NewContext returns a Context whose Value method returns the
 // application's Blobstore data.
-func NewContext(parent context.Context, store Blobstore) context.Context {
+func NewContext(parent context.Context, store BlobStore) context.Context {
 	return &wrapper{parent, store}
 }
 
 type wrapper struct {
 	context.Context
-	store Blobstore
+	store BlobStore
 }
 
 // Value returns the named key from the context.
@@ -26,6 +26,6 @@ func (c *wrapper) Value(key interface{}) interface{} {
 }
 
 // FromContext returns the Blobstore associated with this context.
-func FromContext(c context.Context) Blobstore {
-	return c.Value(reqkey).(Blobstore)
+func FromContext(c context.Context) BlobStore {
+	return c.Value(reqkey).(BlobStore)
 }
