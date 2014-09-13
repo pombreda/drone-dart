@@ -52,6 +52,14 @@ body > header nav li {
   line-height: 55px;
   padding: 0px 20px;
 }
+body > header nav li.beta {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0px 10px;
+  margin-right: 10px;
+  line-height: 30px;
+  color: #999;
+}
 body > header nav li a {
   font-family: 'Open Sans';
   font-size: 14px;
