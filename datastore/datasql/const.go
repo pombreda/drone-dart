@@ -53,6 +53,15 @@ const (
 		  AND build_sdk     = ?;
 		`
 
+	queryBuildLatest = `
+		SELECT *
+		FROM builds
+		WHERE version_id    = ?
+		  AND build_channel = ?
+		ORDER BY build_sdk DESC
+		LIMIT 1;
+		`
+
 	queryBuildList = `
 		SELECT *
 		FROM builds

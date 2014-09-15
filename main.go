@@ -37,19 +37,20 @@ func main() {
 	flag.StringVar(&username, "username", "", "")
 	flag.StringVar(&password, "password", "", "")
 	flag.StringVar(&driver, "driver", "sqlite3", "")
-	flag.StringVar(&datasource, "datasource", "dart.sqlite", "")
+	flag.StringVar(&datasource, "datasource", "pub.sqlite", "")
 	flag.Parse()
 
 	// create the database connection
 	db = datasql.MustConnect(driver, datasource)
 
 	// Add routes to the global handler
-	goji.Get("/api/badges/:name/:number/channel/:channel/status.svg", handler.GetBadge)
 	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
+	goji.Get("/api/badges/:name/:number/channel/:channel/status.svg", handler.GetBadge)
+	goji.Get("/api/packages/:name/versions", handler.GetVersionList)
+	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/latest", handler.GetBuildLatest)
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk", handler.GetBuild)
 	goji.Get("/api/packages/:name/:number/builds", handler.GetBuildList)
 	goji.Get("/api/packages/:name/:number", handler.GetVersion)
-	goji.Get("/api/packages/:name", handler.GetVersionList)
 	goji.Get("/api/packages/:name", handler.GetPackage)
 	goji.Get("/api/packages", handler.GetPackageRecent)
 

@@ -7,8 +7,13 @@ import (
 
 type Buildstore interface {
 	// GetBuild retrieves a specific build from the
-	// database for the matching version ID and channel.
+	// database for the matching version ID, channel and SDK.
 	GetBuild(version int64, channel, sdk string) (*resource.Build, error)
+
+	// GetBuildLatest retrieves a specified build from
+	// the database for the matching version ID and channel,
+	// for the latest SDK.
+	GetBuildLatest(version int64, channel string) (*resource.Build, error)
 
 	// GetBuildList retrieves a list of builds for the
 	// specified version ID.
@@ -28,6 +33,12 @@ type Buildstore interface {
 // database for the matching version ID and channel.
 func GetBuild(c context.Context, version int64, channel, sdk string) (*resource.Build, error) {
 	return FromContext(c).GetBuild(version, channel, sdk)
+}
+
+// GetBuildLatest retrieves a specific build from the
+// database for the matching version ID and channel.
+func GetBuildLatest(c context.Context, version int64, channel string) (*resource.Build, error) {
+	return FromContext(c).GetBuildLatest(version, channel)
 }
 
 // GetBuildList retrieves a list of builds for the

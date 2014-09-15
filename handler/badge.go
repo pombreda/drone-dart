@@ -34,32 +34,38 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 	channel := c.URLParams["channel"]
 	sdk := c.URLParams["sdk"]
 
+	// Ensure we set the correct content-type
+	// for the badge to ensure it displays
+	// correctly on GitHub.
+	w.Header().Set("Content-Type", "image/svg+xml")
+
 	// fetch the package and version data from the datastore.
 	pkg, err := datastore.GetPackage(ctx, name)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		w.Write(badgeNone)
 		return
 	}
 	version, err := datastore.GetVersion(ctx, pkg.ID, number)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		w.Write(badgeNone)
 		return
 	}
 
 	// If no SDK is provided we should use the most recent
 	// SDK number associated with the Package version.
+	var build *resource.Build
 	if len(sdk) == 0 {
-		sdk = version.SDK
+		build, err = datastore.GetBuildLatest(ctx, version.ID, channel)
+	} else {
+		build, err = datastore.GetBuild(ctx, version.ID, channel, sdk)
 	}
-	build, err := datastore.GetBuild(ctx, version.ID, channel, sdk)
+
+	// If there was an error default to a build status None
 	if err != nil {
 		build.Status = resource.StatusNone
 	}
-
-	// ensure we set the correct content-type
-	// for the badge to ensure it displays
-	// correctly on GitHub.
-	w.Header().Set("Content-Type", "image/svg+xml")
 
 	switch build.Status {
 	case resource.StatusSuccess:

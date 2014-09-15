@@ -26,6 +26,14 @@ func TestBlobstore(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 		})
 
+		g.It("Should Overwrite a Blob", func() {
+			bs.Put("foo", []byte("bar"))
+			bs.Put("foo", []byte("baz"))
+			blob, err := bs.Get("foo")
+			g.Assert(err == nil).IsTrue()
+			g.Assert(string(blob)).Equal("baz")
+		})
+
 		g.It("Should Get a Blob", func() {
 			bs.Put("foo", []byte("bar"))
 			blob, err := bs.Get("foo")

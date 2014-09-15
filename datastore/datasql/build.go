@@ -17,6 +17,15 @@ func (s *Buildstore) GetBuild(version int64, channel, sdk string) (*resource.Bui
 	return &bld, err
 }
 
+// GetBuildLatest retrieves a specified build from
+// the database for the matching version ID and channel,
+// for the latest SDK.
+func (s *Buildstore) GetBuildLatest(version int64, channel string) (*resource.Build, error) {
+	var bld = resource.Build{}
+	var err = meddler.QueryRow(s, &bld, queryBuildLatest, version, channel)
+	return &bld, err
+}
+
 // GetBuildList retrieves a list of builds for the
 // specified version ID.
 func (s *Buildstore) GetBuildList(version int64) ([]*resource.Build, error) {

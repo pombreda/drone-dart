@@ -46,6 +46,36 @@ func GetBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(build)
 }
 
+// GetBuildLatest accepts a request to retrieve the build
+// details for the package version, channel and latest SDK
+// from the datastore in JSON format.
+//
+//     GET /api/packages/:name/:number/channel/:channel
+//
+func GetBuildLatest(c web.C, w http.ResponseWriter, r *http.Request) {
+	ctx := context.FromC(c)
+	name := c.URLParams["name"]
+	number := c.URLParams["number"]
+	channel := c.URLParams["channel"]
+
+	pkg, err := datastore.GetPackage(ctx, name)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	version, err := datastore.GetVersion(ctx, pkg.ID, number)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	build, err := datastore.GetBuildLatest(ctx, version.ID, channel)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(build)
+}
+
 // GetBuildList accepts a request to retrieve a list of
 // builds for the specified package and version from
 // the datastore and returns in JSON format.
