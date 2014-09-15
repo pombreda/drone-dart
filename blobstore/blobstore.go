@@ -6,7 +6,7 @@ import (
 	"code.google.com/p/go.net/context"
 )
 
-type BlobStore interface {
+type Blobstore interface {
 	// Del removes an object from the blobstore.
 	Del(path string) error
 

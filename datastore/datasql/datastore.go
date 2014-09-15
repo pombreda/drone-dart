@@ -28,6 +28,8 @@ func Connect(driver, datasource string) (*sql.DB, error) {
 	orm.RegisterModel(new(resource.Channel))
 	orm.RegisterModel(new(resource.Package))
 	orm.RegisterModel(new(resource.Version))
+	orm.RegisterModel(new(resource.Build))
+	orm.RegisterModel(new(resource.Blob))
 	var err = orm.RunSyncdb(databaseName, true, true)
 	if err != nil {
 		return nil, err
@@ -36,14 +38,16 @@ func Connect(driver, datasource string) (*sql.DB, error) {
 }
 
 // New returns a new DataStore
-func New(db *sql.DB) datastore.DataStore {
+func New(db *sql.DB) datastore.Datastore {
 	return struct {
-		*PackageStore
-		*VersionStore
-		*ChannelStore
+		*Channelstore
+		*Packagestore
+		*Versionstore
+		*Buildstore
 	}{
-		NewPackageStore(db),
-		NewVersionStore(db),
-		NewChannelStore(db),
+		NewChannelstore(db),
+		NewPackagestore(db),
+		NewVersionstore(db),
+		NewBuildstore(db),
 	}
 }

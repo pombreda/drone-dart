@@ -1,4 +1,4 @@
-package datastore
+package datasql
 
 import (
 	"fmt"
@@ -17,8 +17,16 @@ func init() {
 	orm.RegisterModel(new(resource.Channel))
 	orm.RegisterModel(new(resource.Package))
 	orm.RegisterModel(new(resource.Version))
+	orm.RegisterModel(new(resource.Build))
 	orm.RegisterModel(new(resource.Blob))
 	orm.RunSyncdb("default", true, true)
+
+	/*
+		db, err := Connect("sqlite3", ":memory:")
+		if err != nil {
+			return
+		}
+	*/
 
 	o := orm.NewOrm()
 

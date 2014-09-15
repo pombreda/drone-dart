@@ -3,37 +3,50 @@ package datastore
 import (
 	"code.google.com/p/go.net/context"
 	"github.com/drone/drone-dart/resource"
-	"github.com/russross/meddler"
 )
+
+type Packagestore interface {
+	// GetPackage retrieves a package by name from
+	// the datastore.
+	GetPackage(name string) (*resource.Package, error)
+
+	// GetPackageRange retrieves a list of all pacakges
+	// by name from the databstore.
+	GetPackageRange(limit, offset int) ([]*resource.Package, error)
+
+	// PostPackage saves a Package in the datastore.
+	PostPackage(pkg *resource.Package) error
+
+	// PutPackage saves a Package in the datastore.
+	PutPackage(pkg *resource.Package) error
+
+	// DelPackage deletes a Package in the datastore.
+	DelPackage(pkg *resource.Package) error
+}
 
 // GetPackage retrieves a package by name from
 // the datastore.
 func GetPackage(c context.Context, name string) (*resource.Package, error) {
-	var pkg = resource.Package{}
-	var err = meddler.QueryRow(FromContext(c), &pkg, queryPackage, name)
-	return &pkg, err
+	return FromContext(c).GetPackage(name)
 }
 
-// GetPackageList retrieves a list of all pacakges
+// GetPackageRange retrieves a range of all pacakges
 // by name from the databstore.
-func GetPackageList(c context.Context) ([]*resource.Package, error) {
-	var pkgs []*resource.Package
-	var err = meddler.QueryAll(FromContext(c), &pkgs, queryPackageList)
-	return pkgs, err
+func GetPackageRange(c context.Context, limit, offset int) ([]*resource.Package, error) {
+	return FromContext(c).GetPackageRange(limit, offset)
 }
 
 // PostPackage saves a Package in the datastore.
 func PostPackage(c context.Context, pkg *resource.Package) error {
-	return meddler.Save(FromContext(c), tablePackage, pkg)
+	return FromContext(c).PostPackage(pkg)
 }
 
 // PutPackage saves a Package in the datastore.
 func PutPackage(c context.Context, pkg *resource.Package) error {
-	return meddler.Save(FromContext(c), tablePackage, pkg)
+	return FromContext(c).PutPackage(pkg)
 }
 
 // DelPackage deletes a Package in the datastore.
 func DelPackage(c context.Context, pkg *resource.Package) error {
-	var _, err = FromContext(c).Exec(deletePackage, pkg.ID)
-	return err
+	return FromContext(c).DelPackage(pkg)
 }

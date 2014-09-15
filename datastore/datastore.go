@@ -1,4 +1,8 @@
 package datastore
 
-type DataStore interface {
+type Datastore interface {
+	Channelstore
+	Packagestore
+	Versionstore
+	Buildstore
 }

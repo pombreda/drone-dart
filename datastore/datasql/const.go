@@ -1,9 +1,10 @@
 package datasql
 
 const (
+	tableChannel = "channels"
 	tablePackage = "packages"
 	tableVersion = "versions"
-	tableChannel = "channels"
+	tableBuild   = "builds"
 )
 
 const (
@@ -15,7 +16,9 @@ const (
 
 	queryPackageList = `
 		SELECT *
-		FROM packages;
+		FROM packages
+		ORDER BY package_updated DESC
+		LIMIT %d OFFSET %d;
 		`
 
 	deletePackage = `
@@ -26,19 +29,40 @@ const (
 	queryVersion = `
 		SELECT *
 		FROM versions
-		WHERE version_number = ? 
-		  AND package_name   = ?;
+		QWHERE package_id     = ?
+		   AND version_number = ?;
 		`
 
 	queryVersionList = `
 		SELECT *
 		FROM versions
-		WHERE package_name = ?;
+		WHERE package_id = ?
+		ORDER BY version_id DESC;
 		`
 
 	deleteVersion = `
 		DELETE FROM versions
 		WHERE version_id = ?;
+		`
+
+	queryBuild = `
+		SELECT *
+		FROM builds
+		WHERE version_id    = ? 
+		  AND build_channel = ?
+		  AND build_sdk     = ?;
+		`
+
+	queryBuildList = `
+		SELECT *
+		FROM builds
+		WHERE version_id = ?
+		ORDER BY build_id DESC;
+		`
+
+	deleteBuild = `
+		DELETE FROM builds
+		WHERE build_id = ?;
 		`
 
 	queryChannel = `
@@ -49,7 +73,8 @@ const (
 
 	queryChannelList = `
 		SELECT *
-		FROM channels;
+		FROM channels
+		ORDER BY channel_id;
 		`
 
 	deleteChannel = `
