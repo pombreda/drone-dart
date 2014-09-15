@@ -29,7 +29,7 @@ const (
 	queryVersion = `
 		SELECT *
 		FROM versions
-		QWHERE package_id     = ?
+		WHERE package_id      = ?
 		   AND version_number = ?;
 		`
 

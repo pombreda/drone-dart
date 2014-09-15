@@ -3,31 +3,31 @@ package worker
 import (
 	"log"
 
+	"code.google.com/p/go.net/context"
 	"github.com/drone/drone-dart/dart"
 )
 
 // http://nesv.github.io/golang/2014/02/25/worker-queues-in-go.html
 
-// Queue is a generic implementation of a build queue
+// Queue is a generic implementation of a worker queue
 // that can accept work requests.
 type Queue interface {
-	Send(r *Request)
-	SendPackage(pkg *dart.Package, sdk *dart.SDK)
+	Send(context.Context, *Worker)
 }
 
 // Dispatch implements a simple FIFO queue, dispatching work
 // requests to the first available worker node.
 type Dispatch struct {
-	requests chan *Request
-	workers  chan chan *Request
-	quit     chan bool
+	work    chan *Work
+	workers chan chan *Work
+	quit    chan bool
 }
 
-func NewDispatch(requests chan *Request, workers chan chan *Request) *Dispatch {
+func NewDispatch(work chan *Work, workers chan chan *Work) *Dispatch {
 	return &Dispatch{
-		requests: requests,
-		workers:  workers,
-		quit:     make(chan bool),
+		work:    work,
+		workers: workers,
+		quit:    make(chan bool),
 	}
 }
 
@@ -37,13 +37,13 @@ func (d *Dispatch) Start() {
 	go func() {
 		for {
 			select {
-			// pickup a request from the queue
-			case request := <-d.requests:
+			// pickup a work request from the queue
+			case work := <-d.work:
 				go func() {
 					// find an available worker and
 					// send the request to that worker
 					worker := <-d.workers
-					worker <- request
+					worker <- work
 				}()
 			// listen for a signal to exit
 			case <-d.quit:
@@ -60,15 +60,8 @@ func (d *Dispatch) Stop() {
 	go func() { d.quit <- true }()
 }
 
-// Send sends a Request to the queue to be dispatched
+// Send sends a work request to the queue to be dispatched
 // to a worker node.
-func (d *Dispatch) Send(r *Request) {
-	go func() { d.requests <- r }()
-}
-
-// SendPackage sends a Package to the queue to be
-// dispatched to a worker node.
-func (d *Dispatch) SendPackage(pkg *dart.Package, sdk *dart.SDK) {
-	log.Printf("Queue build %s for sdk %s\n", pkg.Name, sdk.Version)
-	d.Send(&Request{pkg, sdk})
+func (d *Dispatch) Send(w *Work) {
+	go func() { d.work <- w }()
 }

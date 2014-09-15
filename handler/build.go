@@ -134,11 +134,10 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 		// TODO: catch a failure here
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	work := worker.Work{pkg, version, build}
+	go worker.Send(ctx, &work)
 
-	// send the build to the worker queue.
-	queue := worker.FromContext(ctx)
-	go queue.Send(nil)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // checkVersion is a helper function that returns false if the
