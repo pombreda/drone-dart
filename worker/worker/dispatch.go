@@ -1,29 +1,19 @@
 package worker
 
 import (
-	"log"
-
 	"code.google.com/p/go.net/context"
-	"github.com/drone/drone-dart/dart"
+	"github.com/drone/drone-dart/worker"
 )
-
-// http://nesv.github.io/golang/2014/02/25/worker-queues-in-go.html
-
-// Queue is a generic implementation of a worker queue
-// that can accept work requests.
-type Queue interface {
-	Send(context.Context, *Worker)
-}
 
 // Dispatch implements a simple FIFO queue, dispatching work
 // requests to the first available worker node.
 type Dispatch struct {
-	work    chan *Work
-	workers chan chan *Work
+	work    chan *worker.Work
+	workers chan chan *worker.Work
 	quit    chan bool
 }
 
-func NewDispatch(work chan *Work, workers chan chan *Work) *Dispatch {
+func NewDispatch(work chan *worker.Work, workers chan chan *worker.Work) *Dispatch {
 	return &Dispatch{
 		work:    work,
 		workers: workers,
@@ -62,6 +52,6 @@ func (d *Dispatch) Stop() {
 
 // Send sends a work request to the queue to be dispatched
 // to a worker node.
-func (d *Dispatch) Send(w *Work) {
+func (d *Dispatch) Send(c context.Context, w *worker.Work) {
 	go func() { d.work <- w }()
 }

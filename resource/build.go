@@ -1,7 +1,7 @@
 package resource
 
 type Build struct {
-	ID        int64  `json:"id"      meddler:"build_id,pk"   orm:"column(build_id);pk;auto"`
+	ID        int64  `json:"-"       meddler:"build_id,pk"   orm:"column(build_id);pk;auto"`
 	VersionID int64  `json:"-"       meddler:"version_id"    orm:"column(version_id);index"`
 	Channel   string `json:"channel" meddler:"build_channel" orm:"column(build_channel)"`
 	SDK       string `json:"sdk"     meddler:"build_sdk"     orm:"column(build_sdk)"`

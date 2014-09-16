@@ -12,9 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/drone/drone-dart/dart"
 	"github.com/drone/drone-dart/script"
-	"github.com/drone/drone-dart/storage"
+	"github.com/drone/drone-dart/worker"
 	"github.com/drone/drone/shared/build"
 	"github.com/drone/drone/shared/build/docker"
 	"github.com/drone/drone/shared/build/repo"
@@ -23,19 +22,15 @@ import (
 var mu sync.Mutex
 
 type Worker struct {
-	dart     dart.Client
-	storage  storage.Storage
-	request  chan *Request
-	dispatch chan chan *Request
+	work     chan *worker.Work
+	dispatch chan chan *worker.Work
 	quit     chan bool
 }
 
-func NewWorker(client dart.Client, store storage.Storage, dispatch chan chan *Request) *Worker {
+func NewWorker(dispatch chan chan *worker.Work) *Worker {
 	return &Worker{
-		dart:     client,
-		storage:  store,
 		dispatch: dispatch,
-		request:  make(chan *Request),
+		work:     make(chan *worker.Work),
 		quit:     make(chan bool),
 	}
 }
@@ -47,12 +42,10 @@ func (w *Worker) Start() {
 		for {
 			// register our queue with the dispatch
 			// queue to start accepting work.
-			go func() { w.dispatch <- w.request }()
+			go func() { w.dispatch <- w.work }()
 
 			select {
-			case r := <-w.request:
-				// handle the request
-				//r.Server = w.server
+			case r := <-w.work:
 				w.Execute(r)
 
 			case <-w.quit:
@@ -69,7 +62,7 @@ func (w *Worker) Stop() {
 }
 
 // Execute executes the work Request.
-func (w *Worker) Execute(r *Request) {
+func (w *Worker) Execute(r *worker.Work) {
 	// ensure that we can recover from any panics to
 	// avoid bringing down the entire application.
 	defer func() {
@@ -80,7 +73,7 @@ func (w *Worker) Execute(r *Request) {
 
 	var buf bytes.Buffer
 	var name = r.Package.Name
-	var version = r.Package.Latest.Version
+	var version = r.Version.Number
 
 	log.Println("starting build", name, version)
 
@@ -98,7 +91,7 @@ func (w *Worker) Execute(r *Request) {
 	var dockerClient *docker.Client
 	dockerClient = docker.New()
 
-	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", r.Version.Version)
+	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", r.Build.SDK)
 	if err := upgradeImage(dockerClient, imageName); err != nil {
 		log.Println("Error building new Dart Image [%s]", err.Error())
 	}
@@ -170,6 +163,18 @@ func (w *Worker) Execute(r *Request) {
 	}
 
 	log.Println("completed build", name, version, "\tEXIT:", builder.BuildState.ExitCode)
+}
+
+func downloadPackage() {
+
+}
+
+func extractPackage() {
+
+}
+
+func removePackage() {
+
 }
 
 func upgradeImage(cli *docker.Client, image string) error {

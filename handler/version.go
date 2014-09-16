@@ -31,7 +31,13 @@ func GetVersion(c web.C, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(version)
+	dev, _ := datastore.GetBuildLatest(ctx, version.ID, resource.ChannelDev)
+	stable, _ := datastore.GetBuildLatest(ctx, version.ID, resource.ChannelStable)
+	json.NewEncoder(w).Encode(&struct {
+		*resource.Version
+		Dev    *resource.Build `json:"dev,omitempty"`
+		Stable *resource.Build `json:"stable,omitempty"`
+	}{version, dev, stable})
 }
 
 // GetVersionList accepts a request to retrieve a list of

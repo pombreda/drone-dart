@@ -1,13 +1,14 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"net/http"
+	"strings"
 
 	"github.com/drone/drone-dart/blobstore/blobsql"
 	"github.com/drone/drone-dart/datastore/datasql"
 	"github.com/drone/drone-dart/handler"
-	"github.com/drone/drone-dart/middleware"
 
 	"code.google.com/p/go.net/context"
 	webcontext "github.com/goji/context"
@@ -19,7 +20,7 @@ import (
 var (
 	// username and password used to authorize when
 	// attempting to perform restricted operations.
-	username string
+	// This should be concatinated as username:password.
 	password string
 
 	// database connection information used to create
@@ -34,8 +35,7 @@ var (
 func main() {
 
 	// parse flag variables
-	flag.StringVar(&username, "username", "", "")
-	flag.StringVar(&password, "password", "", "")
+	flag.StringVar(&password, "password", "admin:admin", "")
 	flag.StringVar(&driver, "driver", "sqlite3", "")
 	flag.StringVar(&datasource, "datasource", "pub.sqlite", "")
 	flag.Parse()
@@ -54,12 +54,14 @@ func main() {
 	goji.Get("/api/packages/:name", handler.GetPackage)
 	goji.Get("/api/packages", handler.GetPackageRecent)
 
-	// restricted operations
+	// Restricted operations
 	goji.Post("/sudo/api/packages/:package/channel/:channel/sdk/:sdk", handler.PostBuild)
 	goji.Post("/sudo/api/packages/:package", handler.PostVersion)
 	goji.Post("/sudo/api/packages", handler.GetBuild)
 
-	goji.Use(middleware.SetHeaders)
+	// Add middleware and serve
+	goji.Use(handler.SetHeaders)
+	goji.Use(secureMiddleware)
 	goji.Use(contextMiddleware)
 	goji.Serve()
 
@@ -78,13 +80,6 @@ func main() {
 	//worker.NewWorker(dartcli, store, workersc).Start()
 	//worker.NewWorker(dartcli, store, workersc).Start()
 	//worker.NewWorker(dartcli, store, workersc).Start()
-
-	// create and register the server handler
-	//handler := server.NewServer(dartcli, store, dispatch)
-	//http.Handle("/", handler)
-
-	// start the http server
-	//panic(http.ListenAndServe(":8080", nil))
 }
 
 // contextMiddleware creates a new go.net/context and
@@ -97,6 +92,33 @@ func contextMiddleware(c *web.C, h http.Handler) http.Handler {
 
 		// add the context to the goji web context
 		webcontext.Set(c, ctx)
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
+}
+
+// secureMiddleware is a basic HTTP Auth middleware to
+// prevent unauthorized access to private endpoints.
+func secureMiddleware(c *web.C, h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		if !strings.HasPrefix(r.URL.Path, "/sudo/") {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		auth := r.Header.Get("Authorization")
+		if !strings.HasPrefix(auth, "Basic ") {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		pass, err := base64.StdEncoding.DecodeString(auth[6:])
+		if err != nil || string(pass) != password {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)

@@ -1,7 +1,7 @@
 package resource
 
 type Version struct {
-	ID            int64  `json:"id"             meddler:"version_id,pk"          orm:"column(version_id);pk;auto"`
+	ID            int64  `json:"-"              meddler:"version_id,pk"          orm:"column(version_id);pk;auto"`
 	PackageID     int64  `json:"-"              meddler:"package_id"             orm:"column(package_id);index"`
 	Number        string `json:"number"         meddler:"version_number"         orm:"column(version_number)"`
 	SDK           string `json:"sdk"            meddler:"version_sdk"            orm:"column(version_sdk)"`
