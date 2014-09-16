@@ -8,12 +8,10 @@ import (
 
 func NewContext(parent context.Context, db meddler.DB) context.Context {
 	return datastore.NewContext(parent, struct {
-		*Channelstore
 		*Packagestore
 		*Versionstore
 		*Buildstore
 	}{
-		NewChannelstore(db),
 		NewPackagestore(db),
 		NewVersionstore(db),
 		NewBuildstore(db),
