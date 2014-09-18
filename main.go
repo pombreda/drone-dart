@@ -14,6 +14,7 @@ import (
 	"github.com/drone/drone-dart/worker/pool"
 
 	"code.google.com/p/go.net/context"
+	"github.com/GeertJohan/go.rice"
 	webcontext "github.com/goji/context"
 	"github.com/russross/meddler"
 	"github.com/zenazn/goji"
@@ -60,6 +61,19 @@ func main() {
 	// Create the database connection
 	db = datasql.MustConnect(driver, datasource)
 
+	// Include static resources
+	assets := rice.MustFindBox("website").HTTPBox()
+	assetserve := http.FileServer(rice.MustFindBox("website").HTTPBox())
+	http.Handle("/static/", http.StripPrefix("/static", assetserve))
+	goji.Get("/", func(c web.C, w http.ResponseWriter, r *http.Request) {
+		w.Write(assets.MustBytes("index.html"))
+	})
+
+	//http.Handle("/styles/", http.FileServer(rice.MustFindBox("website/styles/").HTTPBox()))
+	//http.Handle("/scripts/", http.FileServer(rice.MustFindBox("website/scripts/").HTTPBox()))
+	//http.Handle("/images/", http.FileServer(rice.MustFindBox("website/images/").HTTPBox()))
+	//http.Handle("/docs/", http.FileServer(rice.MustFindBox("website/docs/").HTTPBox()))
+
 	// Add routes to the global handler
 	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
 	goji.Get("/api/badges/:name/:number/channel/:channel/status.svg", handler.GetBadge)
@@ -88,7 +102,6 @@ func main() {
 	goji.Use(secureMiddleware)
 	goji.Use(contextMiddleware)
 	goji.Serve()
-
 }
 
 // contextMiddleware creates a new go.net/context and

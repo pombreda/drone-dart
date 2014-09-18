@@ -17,11 +17,11 @@
 	function Config ($routeProvider) {
 		$routeProvider
 		.when('/:package/:version', {
-			templateUrl: '/scripts/views/build.html',
+			templateUrl: '/static/scripts/views/build.html',
 			controller: 'BuildCtrl'
 		})
 		.when('/', {
-			templateUrl: '/scripts/views/main.html',
+			templateUrl: '/static/scripts/views/main.html',
 			controller: 'MainCtrl'
 		});
 	}
