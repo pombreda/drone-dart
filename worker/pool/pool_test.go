@@ -22,6 +22,13 @@ func TestPool(t *testing.T) {
 			g.Assert(pool.workers[&w]).Equal(true)
 		})
 
+		g.It("Should not re-allocate an allocated worker", func() {
+			w := mockWorker{}
+			pool := New()
+			g.Assert(pool.Allocate(&w)).Equal(true)
+			g.Assert(pool.Allocate(&w)).Equal(false)
+		})
+
 		g.It("Should reserve a worker", func() {
 			w := mockWorker{}
 			pool := New()
@@ -63,7 +70,18 @@ func TestPool(t *testing.T) {
 			g.Assert(len(pool.List())).Equal(2)
 		})
 
-		g.It("Should remove a worker")
+		g.It("Should remove a worker", func() {
+			w1 := mockWorker{}
+			w2 := mockWorker{}
+			pool := New()
+			pool.Allocate(&w1)
+			pool.Allocate(&w2)
+			g.Assert(len(pool.workers)).Equal(2)
+			pool.Deallocate(&w1)
+			pool.Deallocate(&w2)
+			g.Assert(len(pool.workers)).Equal(0)
+			g.Assert(len(pool.List())).Equal(0)
+		})
 
 	})
 }
