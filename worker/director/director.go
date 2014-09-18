@@ -40,11 +40,10 @@ func (d *Director) do(c context.Context, work *worker.Work) {
 	d.markPending(work)
 	var pool = pool.FromContext(c)
 	var worker = <-pool.Reserve()
-
 	d.markStarted(work, worker)
 	worker.Do(c, work)
-	pool.Release(worker)
 	d.markComplete(work)
+	go pool.Release(worker)
 }
 
 // GetStarted returns a list of all jobs that
