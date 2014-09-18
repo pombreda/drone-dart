@@ -51,7 +51,7 @@ func (d *Director) do(c context.Context, work *worker.Work) {
 func (d *Director) GetStarted() []*worker.Work {
 	d.Lock()
 	defer d.Unlock()
-	var started []*worker.Work
+	started := []*worker.Work{}
 	for work, _ := range d.started {
 		started = append(started, work)
 	}
@@ -63,7 +63,7 @@ func (d *Director) GetStarted() []*worker.Work {
 func (d *Director) GetPending() []*worker.Work {
 	d.Lock()
 	defer d.Unlock()
-	var pending []*worker.Work
+	pending := []*worker.Work{}
 	for work, _ := range d.pending {
 		pending = append(pending, work)
 	}
@@ -76,7 +76,7 @@ func (d *Director) GetPending() []*worker.Work {
 func (d *Director) GetAssignemnts() []*worker.Assignment {
 	d.Lock()
 	defer d.Unlock()
-	var assignments []*worker.Assignment
+	assignments := []*worker.Assignment{}
 	for work, _worker := range d.started {
 		assignment := &worker.Assignment{work, _worker}
 		assignments = append(assignments, assignment)
