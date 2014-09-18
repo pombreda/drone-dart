@@ -98,11 +98,9 @@ func PostVersion(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	version.Number = in.Number
 	version.PackageID = pkg.ID
-	version.SDKConstraint = in.SDKConstraint
-	version.EnvConstraint = in.EnvConstraint
+	version.Constraint = in.Constraint
 	version.Created = time.Now().UTC().Unix()
 	version.Updated = time.Now().UTC().Unix()
-	//version.Status = resource.StatusNone
 	if err := datastore.PutVersion(ctx, version); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

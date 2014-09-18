@@ -64,6 +64,7 @@ func main() {
 	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
 	goji.Get("/api/badges/:name/:number/channel/:channel/status.svg", handler.GetBadge)
 	goji.Get("/api/packages/:name/versions", handler.GetVersionList)
+	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk/stdout.txt", handler.GetOutput)
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/latest", handler.GetBuildLatest)
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk", handler.GetBuild)
 	goji.Get("/api/packages/:name/:number/builds", handler.GetBuildList)
@@ -78,7 +79,7 @@ func main() {
 	goji.Get("/api/workers", handler.GetWorkers)
 
 	// Restricted operations
-	goji.Post("/sudo/api/packages/:package/channel/:channel/sdk/:sdk", handler.PostBuild)
+	goji.Post("/sudo/api/packages/:package/:version/channel/:channel/sdk/:sdk", handler.PostBuild)
 	goji.Post("/sudo/api/packages/:package", handler.PostVersion)
 	goji.Post("/sudo/api/packages", handler.GetBuild)
 

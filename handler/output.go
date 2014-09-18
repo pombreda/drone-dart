@@ -13,7 +13,7 @@ import (
 // GetOutput accepts a request to retrieve the named
 // package and version raw build results from the blobstore.
 //
-//     GET /api/packages/:name/:number/channel/:channel/version/:sdk/output.txt
+//     GET /api/packages/:name/:number/channel/:channel/sdk/:sdk/stdout.txt
 //
 func GetOutput(c web.C, w http.ResponseWriter, r *http.Request) {
 	var ctx = context.FromC(c)

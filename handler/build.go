@@ -108,31 +108,30 @@ func GetBuildList(c web.C, w http.ResponseWriter, r *http.Request) {
 // PostBuild accepts a request to execute a build
 // for the named package, version, channel and SDK.
 //
-//    POST /sudo/api/packages/:package/channel/:channel/sdk/:sdk
+//    POST /sudo/api/packages/:package/:version/channel/:channel/sdk/:sdk
 //
 func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
-	name := c.URLParams["name"]
-	number := c.URLParams["number"]
+	name := c.URLParams["package"]
+	number := c.URLParams["version"]
 	channel := c.URLParams["channel"]
 	sdk := c.URLParams["sdk"]
-
 	pkg, err := datastore.GetPackage(ctx, name)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	version, err := datastore.GetVersion(ctx, pkg.ID, number)
-	if err == nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	// check to make sure that this package is eligible
 	// for build using the specified SDK version number.
-	if !checkVersion(sdk, version.SDKConstraint) {
+	if !checkVersion(sdk, version.Constraint) {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "found SDK constraint %s", version.SDKConstraint)
+		fmt.Fprintf(w, "found SDK constraint %s", version.Constraint)
 		return
 	}
 
