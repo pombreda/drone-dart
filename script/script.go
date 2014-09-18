@@ -32,6 +32,8 @@ func Generate(path string) *script.Build {
 	}
 	build.Script = []string{
 		"sh -e /etc/init.d/xvfb start",
+		"dart --version",
+		"pub --version",
 		"pub get",
 	}
 
