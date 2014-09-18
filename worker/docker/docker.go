@@ -131,8 +131,7 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	}
 
 	// insert the test output into the blobstore
-	var blobkey = fmt.Sprintf(
-		"%s/%s/%s/%s",
+	var blobkey = filepath.Join(
 		r.Package.Name,
 		r.Version.Number,
 		r.Build.Channel,
