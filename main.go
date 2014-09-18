@@ -71,6 +71,12 @@ func main() {
 	goji.Get("/api/packages/:name", handler.GetPackage)
 	goji.Get("/api/packages", handler.GetPackageRecent)
 
+	// Add routes for querying the build queue (workers)
+	goji.Get("/api/work/started", handler.GetWorkStarted)
+	goji.Get("/api/work/pending", handler.GetWorkPending)
+	goji.Get("/api/work/assignments", handler.GetWorkAssigned)
+	goji.Get("/api/workers", handler.GetWorkers)
+
 	// Restricted operations
 	goji.Post("/sudo/api/packages/:package/channel/:channel/sdk/:sdk", handler.PostBuild)
 	goji.Post("/sudo/api/packages/:package", handler.PostVersion)
@@ -82,21 +88,6 @@ func main() {
 	goji.Use(contextMiddleware)
 	goji.Serve()
 
-	// create an instance of the Dispatch queue, used to
-	// process package build requests, and dispatch to
-	// worker nodes.
-	//requestc := make(chan *worker.Request)
-	//workersc := make(chan chan *worker.Request)
-	//dispatch := worker.NewDispatch(requestc, workersc)
-	//dispatch.Start()
-
-	// add a set of worker node
-	// todo(bradrydzewski) these are dynamically allocated
-	//                     in the latest branch, don't fix.
-	//worker.NewWorker(dartcli, store, workersc).Start()
-	//worker.NewWorker(dartcli, store, workersc).Start()
-	//worker.NewWorker(dartcli, store, workersc).Start()
-	//worker.NewWorker(dartcli, store, workersc).Start()
 }
 
 // contextMiddleware creates a new go.net/context and
