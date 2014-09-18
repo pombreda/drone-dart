@@ -28,6 +28,13 @@ func TestPackagestore(t *testing.T) {
 			g.Assert(pkg.ID != 0).IsTrue()
 		})
 
+		g.It("Should Post a Package", func() {
+			pkg := resource.Package{Name: "foo", Desc: "baz"}
+			err := ps.PostPackage(&pkg)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(pkg.ID != 0).IsTrue()
+		})
+
 		g.It("Should Get a Package", func() {
 			ps.PutPackage(&resource.Package{
 				Name: "foo",

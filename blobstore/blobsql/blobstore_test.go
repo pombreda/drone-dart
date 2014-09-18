@@ -1,9 +1,12 @@
 package blobsql
 
 import (
+	"bytes"
 	"io/ioutil"
 	"testing"
 
+	"code.google.com/p/go.net/context"
+	"github.com/drone/drone-dart/blobstore"
 	"github.com/drone/drone-dart/datastore/datasql"
 	"github.com/franela/goblin"
 )
@@ -23,6 +26,13 @@ func TestBlobstore(t *testing.T) {
 
 		g.It("Should Put a Blob", func() {
 			err := bs.Put("foo", []byte("bar"))
+			g.Assert(err == nil).IsTrue()
+		})
+
+		g.It("Should Put a Blob reader", func() {
+			var buf bytes.Buffer
+			buf.Write([]byte("bar"))
+			err := bs.PutReader("foo", &buf)
 			g.Assert(err == nil).IsTrue()
 		})
 
@@ -52,6 +62,12 @@ func TestBlobstore(t *testing.T) {
 			bs.Put("foo", []byte("bar"))
 			err := bs.Del("foo")
 			g.Assert(err == nil).IsTrue()
+		})
+
+		g.It("Should create a Context", func() {
+			c := NewContext(context.Background(), db)
+			b := blobstore.FromContext(c).(*Blobstore)
+			g.Assert(b.DB).Equal(db)
 		})
 	})
 }

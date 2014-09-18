@@ -38,6 +38,26 @@ func TestVersionstore(t *testing.T) {
 			g.Assert(ver.ID != 0).IsTrue()
 		})
 
+		g.It("Should Post a Version", func() {
+			ver := resource.Version{Number: "1.0.0", PackageID: pkg.ID}
+			err := vs.PostVersion(&ver)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(ver.ID != 0).IsTrue()
+		})
+
+		g.It("Should Update a Version", func() {
+			ver := &resource.Version{Number: "1.0.0", PackageID: pkg.ID}
+			vs.PostVersion(ver)
+			ver.Number = "1.0.1"
+			vs.PostVersion(ver)
+
+			ver, err := vs.GetVersion(pkg.ID, "1.0.1")
+			g.Assert(err == nil).IsTrue()
+			g.Assert(ver.Number).Equal("1.0.1")
+			_, err = vs.GetVersion(pkg.ID, "1.0.0")
+			g.Assert(err == nil).IsFalse()
+		})
+
 		g.It("Should Get a Version", func() {
 			vs.PutVersion(&resource.Version{
 				Number:    "1.0.0",

@@ -36,6 +36,24 @@ func TestBuildstore(t *testing.T) {
 			g.Assert(bld.ID != 0).IsTrue()
 		})
 
+		g.It("Should Post a Build", func() {
+			bld := resource.Build{VersionID: ver.ID, Channel: "dev", SDK: "1.6.0"}
+			err := bs.PostBuild(&bld)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(bld.ID != 0).IsTrue()
+		})
+
+		g.It("Should Update a Build", func() {
+			bld := &resource.Build{VersionID: ver.ID, Channel: "dev", SDK: "1.6.0", Status: "Started"}
+			bs.PostBuild(bld)
+			bld.Status = "Success"
+			bs.PostBuild(bld)
+
+			bld, err := bs.GetBuild(ver.ID, "dev", "1.6.0")
+			g.Assert(err == nil).IsTrue()
+			g.Assert(bld.Status).Equal("Success")
+		})
+
 		g.It("Should Get a Build", func() {
 			bs.PutBuild(&resource.Build{
 				VersionID: ver.ID,
