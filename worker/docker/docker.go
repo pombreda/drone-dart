@@ -1,4 +1,4 @@
-package worker
+package docker
 
 import (
 	"bytes"
@@ -12,6 +12,11 @@ import (
 	"sync"
 	"time"
 
+	"code.google.com/p/go.net/context"
+	"github.com/drone/drone-dart/blobstore"
+	"github.com/drone/drone-dart/dart"
+	"github.com/drone/drone-dart/datastore"
+	"github.com/drone/drone-dart/resource"
 	"github.com/drone/drone-dart/script"
 	"github.com/drone/drone-dart/worker"
 	"github.com/drone/drone/shared/build"
@@ -21,48 +26,17 @@ import (
 
 var mu sync.Mutex
 
-type Worker struct {
-	work     chan *worker.Work
-	dispatch chan chan *worker.Work
-	quit     chan bool
+type Docker struct {
+	docker *docker.Client
 }
 
-func NewWorker(dispatch chan chan *worker.Work) *Worker {
-	return &Worker{
-		dispatch: dispatch,
-		work:     make(chan *worker.Work),
-		quit:     make(chan bool),
+func New() *Docker {
+	return &Docker{
+		docker: docker.New(),
 	}
 }
 
-// Start tells the worker to start listening and
-// accepting new work requests.
-func (w *Worker) Start() {
-	go func() {
-		for {
-			// register our queue with the dispatch
-			// queue to start accepting work.
-			go func() { w.dispatch <- w.work }()
-
-			select {
-			case r := <-w.work:
-				w.Execute(r)
-
-			case <-w.quit:
-				return
-			}
-		}
-	}()
-}
-
-// Stop tells the worker to stop listening for new
-// work requests.
-func (w *Worker) Stop() {
-	go func() { w.quit <- true }()
-}
-
-// Execute executes the work Request.
-func (w *Worker) Execute(r *worker.Work) {
+func (d *Docker) Do(c context.Context, r *worker.Work) {
 	// ensure that we can recover from any panics to
 	// avoid bringing down the entire application.
 	defer func() {
@@ -70,6 +44,9 @@ func (w *Worker) Execute(r *worker.Work) {
 			log.Printf("%s: %s", e, debug.Stack())
 		}
 	}()
+
+	r.Build.Status = resource.StatusStarted
+	datastore.PostBuild(c, r.Build)
 
 	var buf bytes.Buffer
 	var name = r.Package.Name
@@ -86,13 +63,8 @@ func (w *Worker) Execute(r *worker.Work) {
 	}
 	defer os.RemoveAll(tmp)
 
-	// create a new Docker client
-	// todo(bradrydzewski) include Docker URL
-	var dockerClient *docker.Client
-	dockerClient = docker.New()
-
 	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", r.Build.SDK)
-	if err := upgradeImage(dockerClient, imageName); err != nil {
+	if err := upgradeImage(d.docker, imageName); err != nil {
 		log.Println("Error building new Dart Image [%s]", err.Error())
 	}
 
@@ -103,7 +75,7 @@ func (w *Worker) Execute(r *worker.Work) {
 		return
 	}
 	defer tar.Close()
-	err = w.dart.GetPackageTar(name, version, tar)
+	err = dart.NewClientDefault().GetPackageTar(name, version, tar)
 	if err != nil {
 		log.Println("Error downloading Dart package", err)
 		return
@@ -120,7 +92,7 @@ func (w *Worker) Execute(r *worker.Work) {
 	}
 
 	// create an instance of the Docker builder
-	var builder = build.New(dockerClient)
+	var builder = build.New(d.docker)
 	builder.Build = script.Generate(dir)
 	builder.Build.Image = imageName
 	builder.Stdout = &buf
@@ -148,33 +120,32 @@ func (w *Worker) Execute(r *worker.Work) {
 		builder.BuildState.Started = time.Now().UTC().Unix()
 	}
 
-	// insert build results into storage
-	w.storage.SetResults(name, "latest", builder.BuildState)
-	err = w.storage.SetResults(name, version, builder.BuildState)
-	if err != nil {
+	// insert the test output into the blobstore
+	var blobkey = fmt.Sprintf(
+		"%s/%s/%s/%s",
+		r.Package.Name,
+		r.Version.Number,
+		r.Build.Channel,
+		r.Build.SDK,
+	)
+	if err := blobstore.Put(c, blobkey, buf.Bytes()); err != nil {
 		log.Println(err)
 		return
 	}
 
-	err = w.storage.SetOutput(name, version, buf.String())
-	if err != nil {
+	// update the build in the datastore
+	r.Build.Status = resource.StatusSuccess
+	r.Build.Start = builder.BuildState.Started
+	r.Build.Finish = builder.BuildState.Finished
+	if builder.BuildState.ExitCode != 0 {
+		r.Build.Status = resource.StatusFailure
+	}
+	if err := datastore.PostBuild(c, r.Build); err != nil {
 		log.Println(err)
 		return
 	}
 
 	log.Println("completed build", name, version, "\tEXIT:", builder.BuildState.ExitCode)
-}
-
-func downloadPackage() {
-
-}
-
-func extractPackage() {
-
-}
-
-func removePackage() {
-
 }
 
 func upgradeImage(cli *docker.Client, image string) error {

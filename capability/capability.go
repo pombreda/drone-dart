@@ -21,9 +21,3 @@ func (c Capability) Set(key string, value bool) {
 func Enabled(c context.Context, key string) bool {
 	return FromContext(c).Get(key)
 }
-
-// RegisterEnabled returns true if the capability
-// for self-registration is enabled in the system.
-func RegisterEnabled(c context.Context) bool {
-	return FromContext(c).Get("open-registration")
-}

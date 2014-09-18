@@ -5,13 +5,11 @@ import (
 )
 
 type Worker interface {
-	// Send sends work to a worker queue with
-	// session context.
-	Send(context.Context, *Work)
+	Do(context.Context, *Work)
 }
 
-// Send sends work to a worker queue, stored in the
-// session context.
-func Send(c context.Context, w *Work) {
-	FromContext(c).Send(c, w)
+// Do retrieves a worker from the session and uses
+// it to get work done.
+func Do(c context.Context, w *Work) {
+	FromContext(c).Do(c, w)
 }
