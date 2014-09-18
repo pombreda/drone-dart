@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"code.google.com/p/go-uuid/uuid"
 	"code.google.com/p/go.net/context"
 	"github.com/drone/drone-dart/blobstore"
 	"github.com/drone/drone-dart/dart"
@@ -24,15 +25,24 @@ import (
 	"github.com/drone/drone/shared/build/repo"
 )
 
+const dockerKind = "docker"
+
 var mu sync.Mutex
 
 type Docker struct {
+	UUID    string `json:"uuid"`
+	Kind    string `json:"type"`
+	Created int64  `json:"created"`
+
 	docker *docker.Client
 }
 
 func New() *Docker {
 	return &Docker{
-		docker: docker.New(),
+		UUID:    uuid.New(),
+		Kind:    dockerKind,
+		Created: time.Now().UTC().Unix(),
+		docker:  docker.New(),
 	}
 }
 
