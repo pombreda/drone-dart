@@ -32,7 +32,7 @@ func Generate(path string) *script.Build {
 	}
 	build.Script = []string{
 		"sh -e /etc/init.d/xvfb start",
-		"pub install",
+		"pub get",
 	}
 
 	// TODO download content_shell
