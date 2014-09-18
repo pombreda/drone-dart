@@ -10,6 +10,7 @@ import (
 	"github.com/drone/drone-dart/datastore/datasql"
 	"github.com/drone/drone-dart/handler"
 	"github.com/drone/drone-dart/worker/director"
+	"github.com/drone/drone-dart/worker/docker"
 	"github.com/drone/drone-dart/worker/pool"
 
 	"code.google.com/p/go.net/context"
@@ -48,7 +49,15 @@ func main() {
 	flag.StringVar(&datasource, "datasource", "pub.sqlite", "")
 	flag.Parse()
 
-	// create the database connection
+	// Create the worker, director and builders
+	workers = pool.New()
+	workers.Allocate(docker.New())
+	workers.Allocate(docker.New())
+	workers.Allocate(docker.New())
+	workers.Allocate(docker.New())
+	worker = director.New()
+
+	// Create the database connection
 	db = datasql.MustConnect(driver, datasource)
 
 	// Add routes to the global handler
