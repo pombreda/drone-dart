@@ -9,6 +9,8 @@ import (
 	"github.com/drone/drone-dart/blobstore/blobsql"
 	"github.com/drone/drone-dart/datastore/datasql"
 	"github.com/drone/drone-dart/handler"
+	"github.com/drone/drone-dart/worker/director"
+	"github.com/drone/drone-dart/worker/pool"
 
 	"code.google.com/p/go.net/context"
 	webcontext "github.com/goji/context"
@@ -30,6 +32,12 @@ var (
 
 	// database connection
 	db meddler.DB
+
+	// worker pool
+	workers *pool.Pool
+
+	// director
+	worker *director.Director
 )
 
 func main() {
@@ -89,6 +97,8 @@ func contextMiddleware(c *web.C, h http.Handler) http.Handler {
 		var ctx = context.Background()
 		ctx = datasql.NewContext(ctx, db)
 		ctx = blobsql.NewContext(ctx, db)
+		ctx = pool.NewContext(ctx, workers)
+		ctx = director.NewContext(ctx, worker)
 
 		// add the context to the goji web context
 		webcontext.Set(c, ctx)

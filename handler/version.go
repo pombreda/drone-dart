@@ -102,7 +102,7 @@ func PostVersion(c web.C, w http.ResponseWriter, r *http.Request) {
 	version.EnvConstraint = in.EnvConstraint
 	version.Created = time.Now().UTC().Unix()
 	version.Updated = time.Now().UTC().Unix()
-	version.Status = resource.StatusNone
+	//version.Status = resource.StatusNone
 	if err := datastore.PutVersion(ctx, version); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

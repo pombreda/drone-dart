@@ -157,15 +157,15 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	// update the Version details to cache the most
 	// recent build details.
-	if build.Channel == resource.ChannelStable {
-		version.SDK = build.SDK
-		version.Status = resource.StatusPending
-		datastore.PutVersion(ctx, version)
-		// TODO: catch a failure here
-	}
+	//if build.Channel == resource.ChannelStable {
+	//	version.SDK = build.SDK
+	//	version.Status = resource.StatusPending
+	//	datastore.PutVersion(ctx, version)
+	//	// TODO: catch a failure here
+	//}
 
 	work := worker.Work{pkg, version, build}
-	go worker.Send(ctx, &work)
+	go worker.Do(ctx, &work)
 
 	w.WriteHeader(http.StatusNoContent)
 }
