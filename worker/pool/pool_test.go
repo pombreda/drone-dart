@@ -83,6 +83,12 @@ func TestPool(t *testing.T) {
 			g.Assert(len(pool.List())).Equal(0)
 		})
 
+		g.It("Should add / retrieve from context", func() {
+			c := context.Background()
+			p := New()
+			c = NewContext(c, p)
+			g.Assert(FromContext(c)).Equal(p)
+		})
 	})
 }
 

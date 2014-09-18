@@ -76,6 +76,13 @@ func TestDirector(t *testing.T) {
 			d.do(c, work)
 			g.Assert(workr.work).Equal(work) // verify mock worker gets work
 		})
+
+		g.It("Should add director to context", func() {
+			d := New()
+			c := context.Background()
+			c = NewContext(c, d)
+			g.Assert(worker.FromContext(c)).Equal(d)
+		})
 	})
 }
 
