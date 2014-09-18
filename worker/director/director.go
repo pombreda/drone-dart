@@ -8,8 +8,7 @@ import (
 	"github.com/drone/drone-dart/worker/pool"
 )
 
-// Director is a simple FIFO queue that delegates tasks
-// accross multiple runners.
+// Director manages workloads and delegates to workers.
 type Director struct {
 	sync.Mutex
 
@@ -75,12 +74,12 @@ func (d *Director) GetPending() []*worker.Work {
 // GetAssignments returns a list of assignments. The
 // assignment type is a structure that stores the
 // work being performed and the assigned worker.
-func (d *Director) GetAssignemnts() []*Assignment {
+func (d *Director) GetAssignemnts() []*worker.Assignment {
 	d.Lock()
 	defer d.Unlock()
-	var assignments []*Assignment
-	for work, worker := range d.started {
-		assignment := &Assignment{work, worker}
+	var assignments []*worker.Assignment
+	for work, _worker := range d.started {
+		assignment := &worker.Assignment{work, _worker}
 		assignments = append(assignments, assignment)
 	}
 	return assignments

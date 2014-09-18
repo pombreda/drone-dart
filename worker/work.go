@@ -7,3 +7,8 @@ type Work struct {
 	Version *resource.Version
 	Build   *resource.Build
 }
+
+type Assignment struct {
+	Work   *Work
+	Worker Worker
+}
