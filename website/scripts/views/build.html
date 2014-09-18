@@ -11,28 +11,16 @@
 		</h1>
 	</header>
 	<section>
-		
-		<div ng-if="build.Finished !== undefined && build.Finished != 0">
-			<div class="metadata">
-				<dd>Author:</dd>
-				<dt>{{ pkg.latest.pubspec.author }}</dt>
-				<dd>Description:</dd>
-				<dt>{{ pkg.latest.pubspec.description }}</dt>
-				<dd>Started:</dd>
-				<dt>{{ build.Started | fromNow }}</dt>
-				<dd>Finished:</dd>
-				<dt>{{ build.Finished | fromNow }}</dt>
-				<dd>Duration:</dd>
-				<dt>{{ build.Finished - build.Started | toDuration }}</dt>
-			</div>
-			<div ng-if="build.ExitCode==0" class="success">success testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ pkg.latest.version }}</a> about {{ build.Finished | fromNow }}</div>
-			<div ng-if="build.ExitCode!=0" class="failure">failed testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ pkg.latest.version }}</a> about {{ build.Finished | fromNow }}</div>
+
+		<div ng-if="build.finish !== undefined && build.finish !== 0">
+			<div ng-if="build.status === 'Success'" class="success">success testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ version }}</a> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ version }}</a> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
 		</div>
 
-		<div ng-if="build.Started === undefined || build.Started  == 0">
-			<div ng-if="build.Started !== undefined && build.Started != 0">
+		<div ng-if="build.start === undefined || build.start  == 0">
+			<div ng-if="build.start !== undefined && build.start != 0">
 				<dd>Started:</dd>
-				<dt>{{ build.Started | fromNow }}</dt>
+				<dt>{{ build.start | fromNow }}</dt>
 			</div>
 			<div class="running">Running</div>
 		</div>

@@ -6,10 +6,10 @@
 	 */
 	function PackageService($http) {
 		this.getRecent = function() {
-			return $http.get('https://storage.googleapis.com/brad_dart_test/_recent.json');
+			return $http.get('/api/packages');
 		};
 		this.get = function(name) {
-			return $http.get('https://storage.googleapis.com/brad_dart_test/'+name+'/package.json');
+			return $http.get('/api/packages/'+name);
 		};
 	}
 

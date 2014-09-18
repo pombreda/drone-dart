@@ -5,11 +5,11 @@
 	 * data using REST API calls.
 	 */
 	function BuildService($http) {
-		this.get = function(name, version) {
-			return $http.get('https://storage.googleapis.com/brad_dart_test/'+name+'/'+version+'/results.json');
+		this.get = function(name, version, channel, sdk) {
+			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+('stable' || channel)+'/sdk/'+('latest' || sdk));
 		};
-		this.getOutput = function(name, version) {
-			return $http.get('https://storage.googleapis.com/brad_dart_test/'+name+'/'+version+'/output.txt');
+		this.getOutput = function(name, version, channel, sdk) {
+			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+('stable' || channel)+'/sdk/'+sdk+'/stdout.txt');
 		};
 	}
 
