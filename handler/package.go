@@ -34,7 +34,7 @@ func GetPackage(c web.C, w http.ResponseWriter, r *http.Request) {
 //
 func GetPackageRecent(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
-	pkg, err := datastore.GetPackageRange(ctx, 50, 0)
+	pkg, err := datastore.GetPackageFeed(ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -21,6 +21,14 @@ const (
 		LIMIT %d OFFSET %d;
 		`
 
+	queryPackageFeed = `
+		SELECT package_name, package_desc, version_number, version_created
+		FROM packages p, versions v
+		WHERE p.package_id = v.version_id
+		ORDER BY version_created DESC
+		LIMIT 50
+		`
+
 	deletePackage = `
 		DELETE FROM packages
 		WHERE package_id = ?;

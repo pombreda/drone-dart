@@ -15,13 +15,17 @@
 					<th>Package</th>
 					<th>Version</th>
 					<th>Description</th>
+					<th></th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr ng-repeat="pkg in recent | limitTo: 50">
-					<td><a href="#/{{ pkg.name }}/{{ pkg.latest.version }}">{{ pkg.name }}</a></td>
-					<td>{{ pkg.latest.version }}</td>
-					<td>{{ pkg.latest.pubspec.description }}</td>
+					<td>{{ pkg.name }}</td>
+					<td>{{ pkg.number }}</td>
+					<td>{{ pkg.desc }}</td>
+					<td><a href="#/{{ pkg.name }}/{{ pkg.number }}/channel/stable">stable channel</a></td>
+					<td><a href="#/{{ pkg.name }}/{{ pkg.number }}/channel/dev">dev channel</a></td>
 				</tr>
 			</tbody>
 		</table>

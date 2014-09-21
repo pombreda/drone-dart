@@ -52,7 +52,7 @@ func Generate(path string) *script.Build {
 		default:
 			continue // this should never happen
 		}
-		println(command)
+
 		// append the command to the list
 		build.Script = append(build.Script, command)
 	}

@@ -16,6 +16,14 @@
 	 */
 	function Config ($routeProvider) {
 		$routeProvider
+		.when('/:package/:version/channel/:channel/sdk/:sdk', {
+			templateUrl: '/static/scripts/views/build.html',
+			controller: 'BuildCtrl'
+		})
+		.when('/:package/:version/channel/:channel', {
+			templateUrl: '/static/scripts/views/build.html',
+			controller: 'BuildCtrl'
+		})
 		.when('/:package/:version', {
 			templateUrl: '/static/scripts/views/build.html',
 			controller: 'BuildCtrl'

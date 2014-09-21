@@ -14,6 +14,10 @@ type Packagestore interface {
 	// by name from the databstore.
 	GetPackageRange(limit, offset int) ([]*resource.Package, error)
 
+	// GetPackageFeed retrieves a list of recently updated
+	// packages from the datastore.
+	GetPackageFeed() ([]*resource.PackageVersion, error)
+
 	// PostPackage saves a Package in the datastore.
 	PostPackage(pkg *resource.Package) error
 
@@ -34,6 +38,12 @@ func GetPackage(c context.Context, name string) (*resource.Package, error) {
 // by name from the databstore.
 func GetPackageRange(c context.Context, limit, offset int) ([]*resource.Package, error) {
 	return FromContext(c).GetPackageRange(limit, offset)
+}
+
+// GetPackageFeed retrieves a list of recently updated
+// packages from the datastore.
+func GetPackageFeed(c context.Context) ([]*resource.PackageVersion, error) {
+	return FromContext(c).GetPackageFeed()
 }
 
 // PostPackage saves a Package in the datastore.

@@ -7,13 +7,15 @@
 	function BuildCtrl($scope, $routeParams, packages, builds) {
 		var package = $routeParams.package;
 		var version = $routeParams.version;
+		var channel = $routeParams.channel;
+		var sdk     = $routeParams.sdk;
 
 		// gets the build data from the server
-		builds.get(package, version).then(function(build){
+		builds.get(package, version, channel, sdk).then(function(build){
 			$scope.build = build.data;
 			$scope.version = version;
-			var channel = build.data.channel
-			var sdk     = build.data.sdk
+			channel = build.data.channel;
+			sdk     = build.data.sdk;
 
 			// gets the build output from the server
 			builds.getOutput(package, version, channel, sdk).then(function(output){

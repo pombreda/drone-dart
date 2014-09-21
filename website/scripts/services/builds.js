@@ -6,10 +6,10 @@
 	 */
 	function BuildService($http) {
 		this.get = function(name, version, channel, sdk) {
-			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+('stable' || channel)+'/sdk/'+('latest' || sdk));
+			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+(channel || 'stable')+'/sdk/'+(sdk || 'latest'));
 		};
 		this.getOutput = function(name, version, channel, sdk) {
-			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+('stable' || channel)+'/sdk/'+sdk+'/stdout.txt');
+			return $http.get('/api/packages/'+name+'/'+version+'/channel/'+(channel || 'stable')+'/sdk/'+sdk+'/stdout.txt');
 		};
 	}
 

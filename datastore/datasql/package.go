@@ -27,6 +27,14 @@ func (s *Packagestore) GetPackageRange(limit, offset int) ([]*resource.Package, 
 	return pkgs, err
 }
 
+// GetPackageFeed retrieves a list of recently updated
+// packages from the datastore.
+func (s *Packagestore) GetPackageFeed() ([]*resource.PackageVersion, error) {
+	var pkgs []*resource.PackageVersion
+	var err = meddler.QueryAll(s, &pkgs, queryPackageFeed)
+	return pkgs, err
+}
+
 // PostPackage saves a Package in the datastore.
 func (s *Packagestore) PostPackage(pkg *resource.Package) error {
 	return meddler.Save(s, tablePackage, pkg)

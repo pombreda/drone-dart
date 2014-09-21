@@ -12,3 +12,10 @@ type Package struct {
 }
 
 func (p *Package) TableName() string { return "packages" }
+
+type PackageVersion struct {
+	Name    string `json:"name"      meddler:"package_name"`
+	Desc    string `json:"desc"      meddler:"package_desc"`
+	Number  string `json:"number"    meddler:"version_number"`
+	Created int64  `json:"timestamp" meddler:"version_created"`
+}

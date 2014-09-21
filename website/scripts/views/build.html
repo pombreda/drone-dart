@@ -13,8 +13,8 @@
 	<section>
 
 		<div ng-if="build.finish !== undefined && build.finish !== 0">
-			<div ng-if="build.status === 'Success'" class="success">success testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ version }}</a> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
-			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <a ng-href="{{ pkg | pubLink }}" target="_blank">{{ version }}</a> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+			<div ng-if="build.status === 'Success'" class="success">success testing version <span>{{ version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <span>{{ version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
 		</div>
 
 		<div ng-if="build.start === undefined || build.start  == 0">
