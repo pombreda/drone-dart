@@ -56,11 +56,13 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	}()
 
 	r.Build.Status = resource.StatusStarted
-	datastore.PostBuild(c, r.Build)
+	if err := datastore.PostBuild(c, r.Build); err != nil {
+		log.Println("Error updating build status to started", err)
+	}
 
 	var buf bytes.Buffer
-	var name = r.Package.Name
-	var version = r.Version.Number
+	var name = r.Build.Name
+	var version = r.Build.Version
 
 	log.Println("starting build", name, version)
 
@@ -73,10 +75,10 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	}
 	defer os.RemoveAll(tmp)
 
-	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", r.Build.SDK)
-	if err := upgradeImage(d.docker, imageName); err != nil {
-		log.Println("Error building new Dart Image [%s]", err.Error())
-	}
+	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", "stable") //, r.Build.SDK)
+	//if err := upgradeImage(d.docker, imageName); err != nil {
+	//	log.Println("Error building new Dart Image [%s]", err.Error())
+	//}
 
 	// download package to temp directory
 	tar, err := os.Create(filepath.Join(tmp, "package.tar.gz"))
@@ -132,8 +134,8 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 
 	// insert the test output into the blobstore
 	var blobkey = filepath.Join(
-		r.Package.Name,
-		r.Version.Number,
+		r.Build.Name,
+		r.Build.Version,
 		r.Build.Channel,
 		r.Build.SDK,
 	)

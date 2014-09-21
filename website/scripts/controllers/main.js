@@ -5,8 +5,8 @@
 	 * the main homepage and rendering recent package
 	 * uploads and builds.
 	 */	
-	function MainCtrl($scope, $interval, packages) {
-		packages.getRecent().then(function(recent){
+	function MainCtrl($scope, $interval, feed) {
+		feed.get().then(function(recent){
 			$scope.recent = recent.data;
 		}).catch(function(err){
 			$scope.error = err;
@@ -14,7 +14,7 @@
 
 		// check for new data every 5 minutes
 		$interval(function() {
-			packages.getRecent().then(function(recent){
+			feed.get().then(function(recent){
 				$scope.recent = recent.data;
 			});
 		}, 60000);

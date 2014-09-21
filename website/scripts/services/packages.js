@@ -5,12 +5,7 @@
 	 * data using REST API calls.
 	 */
 	function PackageService($http) {
-		this.getRecent = function() {
-			return $http.get('/api/packages');
-		};
-		this.get = function(name) {
-			return $http.get('/api/packages/'+name);
-		};
+		// TODO
 	}
 
 	angular

@@ -3,8 +3,8 @@
 	<header>
 		<h1>
 			<span>pub.dartlang.org</span>
-			<span>{{ pkg.name }}</span>
-			<a ng-href="{{ pkg | pubLink }}" target="_blank">
+			<span>{{ build.name }}</span>
+			<a ng-href="{{ build | pubLink }}" target="_blank">
 				<i class="fa fa-external-link"></i>
 				<span>View in Pub</span>
 			</a>
@@ -13,8 +13,8 @@
 	<section>
 
 		<div ng-if="build.finish !== undefined && build.finish !== 0">
-			<div ng-if="build.status === 'Success'" class="success">success testing version <span>{{ version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
-			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <span>{{ version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+			<div ng-if="build.status === 'Success'" class="success">success testing version <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
 		</div>
 
 		<div ng-if="build.start === undefined || build.start  == 0">

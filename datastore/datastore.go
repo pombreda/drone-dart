@@ -1,7 +1,62 @@
 package datastore
 
+import (
+	"code.google.com/p/go.net/context"
+	"github.com/drone/drone-dart/resource"
+)
+
 type Datastore interface {
-	Packagestore
-	Versionstore
-	Buildstore
+	// GetFeed retrieves a list of recent builds.
+	GetFeed() ([]*resource.Build, error)
+
+	// GetBuild retrieves a specific build from the
+	// database for the matching version ID, channel and SDK.
+	GetBuild(name, version, channel, sdk string) (*resource.Build, error)
+
+	// GetBuildLatest retrieves a specified build from
+	// the database for the matching version and channel,
+	// for the latest SDK.
+	GetBuildLatest(name, version, channel string) (*resource.Build, error)
+
+	// PostBuild saves a Build in the datastore.
+	PostBuild(build *resource.Build) error
+
+	// PutBuild saves a Build in the datastore.
+	PutBuild(build *resource.Build) error
+
+	// DelBuild deletes a Build in the datastore.
+	DelBuild(build *resource.Build) error
+}
+
+// GetFeed retrieves a list of recent builds.
+func GetFeed(c context.Context) ([]*resource.Build, error) {
+	return FromContext(c).GetFeed()
+}
+
+// GetBuild retrieves a specific build from the
+// database for the matching version ID, channel and SDK.
+func GetBuild(c context.Context, name, version, channel, sdk string) (*resource.Build, error) {
+	return FromContext(c).GetBuild(name, version, channel, sdk)
+}
+
+// GetBuildLatest retrieves a specified build from
+// the database for the matching version and channel,
+// for the latest SDK.
+func GetBuildLatest(c context.Context, name, version, channel string) (*resource.Build, error) {
+	return FromContext(c).GetBuildLatest(name, version, channel)
+}
+
+// PostBuild saves a Build in the datastore.
+func PostBuild(c context.Context, build *resource.Build) error {
+	return FromContext(c).PostBuild(build)
+}
+
+// PutBuild saves a Build in the datastore.
+func PutBuild(c context.Context, build *resource.Build) error {
+	return FromContext(c).PostBuild(build)
+}
+
+// DelBuild deletes a Build in the datastore.
+func DelBuild(c context.Context, build *resource.Build) error {
+	return FromContext(c).PostBuild(build)
 }

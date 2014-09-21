@@ -39,27 +39,14 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 	// correctly on GitHub.
 	w.Header().Set("Content-Type", "image/svg+xml")
 
-	// fetch the package and version data from the datastore.
-	pkg, err := datastore.GetPackage(ctx, name)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write(badgeNone)
-		return
-	}
-	version, err := datastore.GetVersion(ctx, pkg.ID, number)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write(badgeNone)
-		return
-	}
-
 	// If no SDK is provided we should use the most recent
 	// SDK number associated with the Package version.
 	var build *resource.Build
+	var err error
 	if len(sdk) == 0 {
-		build, err = datastore.GetBuildLatest(ctx, version.ID, channel)
+		build, err = datastore.GetBuildLatest(ctx, name, number, channel)
 	} else {
-		build, err = datastore.GetBuild(ctx, version.ID, channel, sdk)
+		build, err = datastore.GetBuild(ctx, name, number, channel, sdk)
 	}
 
 	// If there was an error default to a build status None

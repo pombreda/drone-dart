@@ -31,8 +31,6 @@ func Connect(driver, datasource string) (*sql.DB, error) {
 	defer orm.ResetModelCache()
 	orm.RegisterDriver(driverSqlite, orm.DR_Sqlite)
 	orm.RegisterDataBase(databaseName, driver, datasource)
-	orm.RegisterModel(new(resource.Package))
-	orm.RegisterModel(new(resource.Version))
 	orm.RegisterModel(new(resource.Build))
 	orm.RegisterModel(new(resource.Blob))
 	var err = orm.RunSyncdb(databaseName, false, false)

@@ -4,7 +4,7 @@
 	 * Build controller responsible for displaying
 	 * the build page and rendering the build results.
 	 */	
-	function BuildCtrl($scope, $routeParams, packages, builds) {
+	function BuildCtrl($scope, $routeParams, builds) {
 		var package = $routeParams.package;
 		var version = $routeParams.version;
 		var channel = $routeParams.channel;
@@ -13,7 +13,6 @@
 		// gets the build data from the server
 		builds.get(package, version, channel, sdk).then(function(build){
 			$scope.build = build.data;
-			$scope.version = version;
 			channel = build.data.channel;
 			sdk     = build.data.sdk;
 
@@ -24,13 +23,6 @@
 				$scope.error = error;
 			});
 
-		}).catch(function(error){
-			$scope.error = error;
-		});
-
-		// gets the package data from the server
-		packages.get(package).then(function(pkg){
-			$scope.pkg = pkg.data;
 		}).catch(function(error){
 			$scope.error = error;
 		});

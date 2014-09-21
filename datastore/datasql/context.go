@@ -7,13 +7,5 @@ import (
 )
 
 func NewContext(parent context.Context, db meddler.DB) context.Context {
-	return datastore.NewContext(parent, struct {
-		*Packagestore
-		*Versionstore
-		*Buildstore
-	}{
-		NewPackagestore(db),
-		NewVersionstore(db),
-		NewBuildstore(db),
-	})
+	return datastore.NewContext(parent, New(db))
 }

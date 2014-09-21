@@ -14,18 +14,18 @@
 				<tr>
 					<th>Package</th>
 					<th>Version</th>
-					<th>Description</th>
-					<th></th>
+					<th>Channel</th>
+					<th>SDK</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr ng-repeat="pkg in recent | limitTo: 50">
 					<td>{{ pkg.name }}</td>
-					<td>{{ pkg.number }}</td>
-					<td>{{ pkg.desc }}</td>
-					<td><a href="#/{{ pkg.name }}/{{ pkg.number }}/channel/stable">stable channel</a></td>
-					<td><a href="#/{{ pkg.name }}/{{ pkg.number }}/channel/dev">dev channel</a></td>
+					<td>{{ pkg.version }}</td>
+					<td>{{ pkg.channel }}</td>
+					<td>{{ pkg.sdk }}</td>
+					<td><a href="#/{{ pkg.name }}/{{ pkg.version }}/channel/{{ pkg.channel }}/sdk/{{ pkg.sdk }}">results</a></td>
 				</tr>
 			</tbody>
 		</table>
