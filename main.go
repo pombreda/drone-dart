@@ -75,6 +75,7 @@ func main() {
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk/stdout.txt", handler.GetOutput)
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/latest", handler.GetBuildLatest)
 	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk", handler.GetBuild)
+	goji.Get("/api/channel/:channel", handler.GetChannel)
 	goji.Get("/api/feed", handler.GetFeed)
 
 	// Add routes for querying the build queue (workers)

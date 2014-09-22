@@ -16,6 +16,14 @@ func (d *Datastore) GetFeed() ([]*resource.Build, error) {
 	return blds, err
 }
 
+// GetChannel retrieves the latest SDK version in
+// the system for the specified channel.
+func (d *Datastore) GetChannel(channel string) (*resource.Channel, error) {
+	var ver = resource.Channel{}
+	var err = meddler.QueryRow(d, &ver, queryVersion, channel)
+	return &ver, err
+}
+
 // GetBuild retrieves a specific build from the
 // database for the matching version ID, channel and SDK.
 func (d *Datastore) GetBuild(name, version, channel, sdk string) (*resource.Build, error) {

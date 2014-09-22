@@ -9,6 +9,10 @@ type Datastore interface {
 	// GetFeed retrieves a list of recent builds.
 	GetFeed() ([]*resource.Build, error)
 
+	// GetChannel retrieves the latest SDK version in
+	// the system for the specified channel.
+	GetChannel(channel string) (*resource.Channel, error)
+
 	// GetBuild retrieves a specific build from the
 	// database for the matching version ID, channel and SDK.
 	GetBuild(name, version, channel, sdk string) (*resource.Build, error)
@@ -31,6 +35,12 @@ type Datastore interface {
 // GetFeed retrieves a list of recent builds.
 func GetFeed(c context.Context) ([]*resource.Build, error) {
 	return FromContext(c).GetFeed()
+}
+
+// GetChannel retrieves the latest SDK version in
+// the system for the specified channel.
+func GetChannel(c context.Context, channel string) (*resource.Channel, error) {
+	return FromContext(c).GetChannel(channel)
 }
 
 // GetBuild retrieves a specific build from the

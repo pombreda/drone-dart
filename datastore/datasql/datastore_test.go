@@ -89,6 +89,17 @@ func TestBuildstore(t *testing.T) {
 			g.Assert(bld.Created).Equal(int64(1001))
 		})
 
+		g.It("Should Get the Latest SDK Version", func() {
+			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.0", Revision: 1000})
+			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.1", Revision: 1001})
+			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.2", Revision: 1002})
+			ver, err := ds.GetChannel("stable")
+			g.Assert(err == nil).IsTrue()
+			g.Assert(ver.Channel).Equal("stable")
+			g.Assert(ver.Version).Equal("1.6.2")
+			g.Assert(ver.Revision).Equal(int64(1002))
+		})
+
 		g.It("Should Not Put a Build with Duplicate Data", func() {
 			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "dev", SDK: "1.6.0"})
 			err := ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "dev", SDK: "1.6.0"})

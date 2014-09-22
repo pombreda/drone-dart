@@ -35,4 +35,15 @@ const (
 		DELETE FROM builds
 		WHERE build_id = ?;
 		`
+
+	queryVersion = `
+		SELECT build_channel, build_sdk, build_sdk_revision
+		FROM builds
+		WHERE build_sdk_revision IN (
+			SELECT max(build_sdk_revision)
+			FROM builds
+			WHERE build_channel = ?
+		)
+		LIMIT 1
+		`
 )
