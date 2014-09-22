@@ -1,11 +1,6 @@
 package datasql
 
-const (
-	tableChannel = "channels"
-	tablePackage = "packages"
-	tableVersion = "versions"
-	tableBuild   = "builds"
-)
+const tableBuild = "builds"
 
 const (
 	queryFeed = `

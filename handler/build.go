@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/drone/drone-dart/datastore"
@@ -63,8 +64,16 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("package")
 	number := r.FormValue("version")
 	channel := r.FormValue("channel")
-	revision := r.FormValue("revision")
+	rev := r.FormValue("revision")
 	sdk := r.FormValue("sdk")
+
+	// parse the revision number from string to int64
+	// format so that we can run version comparisons.
+	revision, err := strconv.ParseInt(rev, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	// get the build from the datastore. If it does not
 	// yet exist, populate fields required upon creation.

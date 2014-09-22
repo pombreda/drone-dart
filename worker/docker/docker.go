@@ -163,7 +163,7 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	log.Println("completed build", name, version, "\tEXIT:", builder.BuildState.ExitCode)
 }
 
-func createImage(cli *docker.Client, channel, revision string) (string, error) {
+func createImage(cli *docker.Client, channel string, revision int64) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -205,7 +205,7 @@ WORKDIR /home/ubuntu
 USER ubuntu
 ADD dart.sh /etc/drone.d/
 
-RUN wget http://storage.googleapis.com/dart-archive/channels/%s/release/%s/editor/darteditor-linux-x64.zip --quiet && \
+RUN wget http://storage.googleapis.com/dart-archive/channels/%v/release/%v/editor/darteditor-linux-x64.zip --quiet && \
     unzip darteditor-linux-x64 "-d" /home/ubuntu && \
     rm darteditor-linux-x64.zip
 
