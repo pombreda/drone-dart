@@ -12,19 +12,15 @@
 	</header>
 	<section>
 
-		<div ng-if="build.finish !== undefined && build.finish !== 0">
-			<div ng-if="build.status === 'Success'" class="success">success testing version <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
-			<div ng-if="build.status !== 'Success'" class="failure">failed testing version <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> about {{ build.finish | fromNow }}</div>
+		<div ng-switch="build.status" ng-if="build.finish !== undefined && build.finish !== 0">
+			<div ng-switch-when="Success" class="success">success testing <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> {{ build.finish | fromNow }}</div>
+			<div ng-switch-when="Warning" class="warning">no tests found for <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> {{ build.finish | fromNow }}</div>
+			<div ng-switch-when="Failure" class="failure">failed testing <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> {{ build.finish | fromNow }}</div>
+			<div ng-switch-when="Error"   class="failure">error testing <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span> {{ build.finish | fromNow }}</div>
+			<div ng-switch-when="Started" class="running">testing <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span></div>
+			<div ng-switch-when="Pending" class="running">testing <span>{{ build.version }}</span> using <span>{{ build.channel }} {{ build.sdk }}</span></div>
 		</div>
 
-		<div ng-if="build.start === undefined || build.start  == 0">
-			<div ng-if="build.start !== undefined && build.start != 0">
-				<dd>Started:</dd>
-				<dt>{{ build.start | fromNow }}</dt>
-			</div>
-			<div class="running">Running</div>
-		</div>
-
-		<pre>{{ output }}</pre>
+		<pre ng-if="build.finish !== undefined && build.finish != 0">{{ output }}</pre>
 	</section>
 </article>

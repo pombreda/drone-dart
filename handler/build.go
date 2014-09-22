@@ -56,14 +56,15 @@ func GetBuildLatest(c web.C, w http.ResponseWriter, r *http.Request) {
 // PostBuild accepts a request to execute a build
 // for the named package, version, channel and SDK.
 //
-//    POST /sudo/api/packages/:package/:version/channel/:channel/sdk/:sdk
+//    POST /sudo/api/build
 //
 func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
-	name := c.URLParams["package"]
-	number := c.URLParams["version"]
-	channel := c.URLParams["channel"]
-	sdk := c.URLParams["sdk"]
+	name := r.FormValue("package")
+	number := r.FormValue("version")
+	channel := r.FormValue("channel")
+	revision := r.FormValue("revision")
+	sdk := r.FormValue("sdk")
 
 	// get the build from the datastore. If it does not
 	// yet exist, populate fields required upon creation.
@@ -75,6 +76,7 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 		build.SDK = sdk
 		build.Created = time.Now().UTC().Unix()
 	}
+	build.Revision = revision
 	build.Status = resource.StatusPending
 	build.Updated = time.Now().UTC().Unix()
 	if err := datastore.PutBuild(ctx, build); err != nil {

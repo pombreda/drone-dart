@@ -84,7 +84,7 @@ func main() {
 	goji.Get("/api/workers", handler.GetWorkers)
 
 	// Restricted operations
-	goji.Post("/sudo/api/packages/:package/:version/channel/:channel/sdk/:sdk", handler.PostBuild)
+	goji.Post("/sudo/api/build", handler.PostBuild)
 
 	// Add middleware and serve
 	goji.Use(handler.SetHeaders)

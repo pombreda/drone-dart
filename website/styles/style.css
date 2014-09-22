@@ -233,7 +233,8 @@ footer a:hover {
 }
 .success,
 .failure,
-.running {
+.running,
+.warning {
   color: rgba(255, 255, 255, 0.8);
   margin-top: 30px;
   margin-bottom: 20px;
@@ -243,9 +244,11 @@ footer a:hover {
 .success span,
 .failure span,
 .running span,
+.warning span,
 .success a,
 .failure a,
-.running a {
+.running a,
+.warning a {
   background: rgba(255, 255, 255, 0.2);
   padding: 5px;
   border-radius: 5px;
@@ -260,6 +263,9 @@ footer a:hover {
 }
 .running {
   background: #ffb300;
+}
+.warning {
+  background: #ff5722;
 }
 .metadata {
   clear: both;

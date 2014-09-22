@@ -75,10 +75,10 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	}
 	defer os.RemoveAll(tmp)
 
-	var imageName = fmt.Sprintf("bradrydzewski/dart:%v", "stable") //, r.Build.SDK)
-	//if err := upgradeImage(d.docker, imageName); err != nil {
-	//	log.Println("Error building new Dart Image [%s]", err.Error())
-	//}
+	imageName, err := createImage(d.docker, r.Build.Channel, r.Build.Revision)
+	if err != nil {
+		log.Println("Error building new Dart Image [%s]", err.Error())
+	}
 
 	// download package to temp directory
 	tar, err := os.Create(filepath.Join(tmp, "package.tar.gz"))
@@ -104,8 +104,9 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	}
 
 	// create an instance of the Docker builder
+	var script = script.Generate(dir)
 	var builder = build.New(d.docker)
-	builder.Build = script.Generate(dir)
+	builder.Build = script
 	builder.Build.Image = imageName
 	builder.Stdout = &buf
 	builder.Timeout = time.Duration(1800) * time.Second
@@ -150,7 +151,10 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	r.Build.Finish = builder.BuildState.Finished
 	if builder.BuildState.ExitCode != 0 {
 		r.Build.Status = resource.StatusFailure
+	} else if len(script.Script) == 4 { // TODO put default commands in an array, so we don't need to hard code
+		r.Build.Status = resource.StatusWarning
 	}
+
 	if err := datastore.PostBuild(c, r.Build); err != nil {
 		log.Println(err)
 		return
@@ -159,13 +163,17 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	log.Println("completed build", name, version, "\tEXIT:", builder.BuildState.ExitCode)
 }
 
-func upgradeImage(cli *docker.Client, image string) error {
+func createImage(cli *docker.Client, channel, revision string) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
+	// based image name
+	image := fmt.Sprintf("bradrydzewski/dart:%v-%v", channel, revision)
+
+	// only create the image if it does not already exist
 	_, err := cli.Images.Inspect(image)
 	if err == nil {
-		return nil
+		return image, nil
 	}
 
 	log.Println("Upgrading build image", image)
@@ -174,31 +182,30 @@ func upgradeImage(cli *docker.Client, image string) error {
 	// the Docker image from
 	tmp, err := ioutil.TempDir("", "sdk_")
 	if err != nil {
-		return err
+		return image, err
 	}
 	defer os.RemoveAll(tmp)
 
 	// generate a Dockerfile that can be used to build the image
-	ioutil.WriteFile(filepath.Join(tmp, "Dockerfile"), []byte(fmt.Sprintf(dockerfile, image)), 0777)
+	ioutil.WriteFile(filepath.Join(tmp, "Dockerfile"), []byte(fmt.Sprintf(dockerfile, channel, revision)), 0777)
 	ioutil.WriteFile(filepath.Join(tmp, "dart.sh"), []byte(envs), 0777)
 
 	// build the image
 	err = cli.Images.Build(image, tmp)
 	if err != nil {
-		return err
+		return image, err
 	}
 
-	return nil
+	return image, nil
 }
 
 var dockerfile = `
 FROM bradrydzewski/base
 WORKDIR /home/ubuntu
 USER ubuntu
-ENV DART_VERSION %q
 ADD dart.sh /etc/drone.d/
 
-RUN wget http://storage.googleapis.com/dart-archive/channels/stable/release/latest/editor/darteditor-linux-x64.zip --quiet && \
+RUN wget http://storage.googleapis.com/dart-archive/channels/%s/release/%s/editor/darteditor-linux-x64.zip --quiet && \
     unzip darteditor-linux-x64 "-d" /home/ubuntu && \
     rm darteditor-linux-x64.zip
 
