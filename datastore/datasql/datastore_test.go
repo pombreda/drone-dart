@@ -79,6 +79,7 @@ func TestBuildstore(t *testing.T) {
 		g.It("Should Get the Latest Build", func() {
 			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.0", Created: 1000, Finish: 1})
 			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.1", Created: 1001, Finish: 1})
+			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "stable", SDK: "1.6.2", Created: 1002, Finish: 0})
 			bld, err := ds.GetBuildLatest("foo", "1.0.0", "stable")
 			g.Assert(err == nil).IsTrue()
 			g.Assert(bld.Name).Equal("foo")
