@@ -66,6 +66,7 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	channel := r.FormValue("channel")
 	rev := r.FormValue("revision")
 	sdk := r.FormValue("sdk")
+	force := r.FormValue("force")
 
 	// parse the revision number from string to int64
 	// format so that we can run version comparisons.
@@ -78,7 +79,10 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	// get the build from the datastore. If it does not
 	// yet exist, populate fields required upon creation.
 	build, err := datastore.GetBuild(ctx, name, number, channel, sdk)
-	if err != nil {
+	if err != nil && len(force) == 0 {
+		w.WriteHeader(http.StatusConflict)
+		return
+	} else if err != nil {
 		build.Name = name
 		build.Version = number
 		build.Channel = channel

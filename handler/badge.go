@@ -81,12 +81,11 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 	default:
 		badgeStr = badgeNone
 		badgeMsg = channel
-		return
 	}
 
 	// replace any - with -- for compatibility with
 	// the shields.io service.
-	badgeMsg = strings.Replace(build.SDK, "-", "--", -1)
+	badgeMsg = strings.Replace(badgeMsg, "-", "--", -1)
 
 	// generate the badge url and check to see if the
 	// badge already exists in the cache
@@ -99,7 +98,7 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 	// retrieve the badge from shields.io
 	res, err := http.Get(badgeUrl)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, err.Error(), res.StatusCode)
 		return
 	}
 	defer res.Body.Close()
@@ -108,7 +107,7 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 	// write to the response + the local lru cache.
 	badgeRaw, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
