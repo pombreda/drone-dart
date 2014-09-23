@@ -1,24 +1,34 @@
 package handler
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/drone/drone-dart/datastore"
 	"github.com/drone/drone-dart/resource"
 	"github.com/goji/context"
+	"github.com/hashicorp/golang-lru"
 	"github.com/zenazn/goji/web"
 )
 
 // badges that indicate the current build status for a repository
 // and branch combination.
 var (
-	badgeSuccess = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="91" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="91" height="18" fill="#555"/><rect rx="4" x="37" width="54" height="18" fill="#4c1"/><path fill="#4c1" d="M37 0h4v18h-4z"/><rect rx="4" width="91" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="13" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="12">build</text><text x="63" y="13" fill="#010101" fill-opacity=".3">success</text><text x="63" y="12">success</text></g></svg>`)
-	badgeFailure = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="83" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="83" height="18" fill="#555"/><rect rx="4" x="37" width="46" height="18" fill="#e05d44"/><path fill="#e05d44" d="M37 0h4v18h-4z"/><rect rx="4" width="83" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="13" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="12">build</text><text x="59" y="13" fill="#010101" fill-opacity=".3">failure</text><text x="59" y="12">failure</text></g></svg>`)
-	badgeWarning = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="92" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="92" height="18" fill="#555"/><rect rx="4" x="37" width="55" height="18" fill="#fe7d37"/><path fill="#fe7d37" d="M37 0h4v18h-4z"/><rect rx="4" width="92" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="14" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="13">build</text><text x="63.5" y="14" fill="#010101" fill-opacity=".3">warning</text><text x="63.5" y="13">warning</text></g></svg>`)
-	badgeStarted = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="87" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="87" height="18" fill="#555"/><rect rx="4" x="37" width="50" height="18" fill="#dfb317"/><path fill="#dfb317" d="M37 0h4v18h-4z"/><rect rx="4" width="87" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="13" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="12">build</text><text x="61" y="13" fill="#010101" fill-opacity=".3">started</text><text x="61" y="12">started</text></g></svg>`)
-	badgeError   = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="76" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="76" height="18" fill="#555"/><rect rx="4" x="37" width="39" height="18" fill="#9f9f9f"/><path fill="#9f9f9f" d="M37 0h4v18h-4z"/><rect rx="4" width="76" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="13" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="12">build</text><text x="55.5" y="13" fill="#010101" fill-opacity=".3">error</text><text x="55.5" y="12">error</text></g></svg>`)
-	badgeNone    = []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="75" height="18"><linearGradient id="a" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".1" stop-color="#aaa" stop-opacity=".1"/><stop offset=".9" stop-opacity=".3"/><stop offset="1" stop-opacity=".5"/></linearGradient><rect rx="4" width="75" height="18" fill="#555"/><rect rx="4" x="37" width="38" height="18" fill="#9f9f9f"/><path fill="#9f9f9f" d="M37 0h4v18h-4z"/><rect rx="4" width="75" height="18" fill="url(#a)"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="19.5" y="13" fill="#010101" fill-opacity=".3">build</text><text x="19.5" y="12">build</text><text x="55" y="13" fill="#010101" fill-opacity=".3">none</text><text x="55" y="12">none</text></g></svg>`)
+	badgeSuccess = `https://img.shields.io/badge/%s-success-green.svg`
+	badgeFailure = `https://img.shields.io/badge/%s-fail-red.svg`
+	badgeWarning = `https://img.shields.io/badge/%s-warning-orange.svg`
+	badgeStarted = `https://img.shields.io/badge/%s-pending-yellow.svg`
+	badgePending = `https://img.shields.io/badge/%s-started-yellow.svg`
+	badgeKilled  = `https://img.shields.io/badge/%s-killed-red.svg`
+	badgeError   = `https://img.shields.io/badge/%s-error-red.svg`
+	badgeNone    = `https://img.shields.io/badge/%s-none-lightgrey.svg`
 )
+
+// badge cache to hold SVG values from shields.io to eliminate
+// overloading their service with unnecessary traffic.
+var badgeCache, _ = lru.New(128)
 
 // GetBadge accepts a request to retrieve the named
 // package and version build details from the datastore
@@ -54,18 +64,54 @@ func GetBadge(c web.C, w http.ResponseWriter, r *http.Request) {
 		build.Status = resource.StatusNone
 	}
 
+	var badgeStr string
+	var badgeMsg string = build.SDK
+
 	switch build.Status {
 	case resource.StatusSuccess:
-		w.Write(badgeSuccess)
+		badgeStr = badgeSuccess
 	case resource.StatusFailure:
-		w.Write(badgeFailure)
+		badgeStr = badgeFailure
 	case resource.StatusWarning:
-		w.Write(badgeWarning)
+		badgeStr = badgeWarning
 	case resource.StatusStarted, resource.StatusPending:
-		w.Write(badgeStarted)
+		badgeStr = badgeStarted
 	case resource.StatusKilled, resource.StatusError:
-		w.Write(badgeFailure)
+		badgeStr = badgeError
 	default:
-		w.Write(badgeNone)
+		badgeStr = badgeNone
+		badgeMsg = channel
+		return
 	}
+
+	// replace any - with -- for compatibility with
+	// the shields.io service.
+	badgeMsg = strings.Replace(build.SDK, "-", "--", -1)
+
+	// generate the badge url and check to see if the
+	// badge already exists in the cache
+	var badgeUrl = fmt.Sprintf(badgeStr, badgeMsg)
+	if badgeRaw, ok := badgeCache.Get(badgeUrl); ok {
+		w.Write(badgeRaw.([]byte))
+		return
+	}
+
+	// retrieve the badge from shields.io
+	res, err := http.Get(badgeUrl)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer res.Body.Close()
+
+	// read the svg data from the request body,
+	// write to the response + the local lru cache.
+	badgeRaw, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	badgeCache.Add(badgeUrl, badgeRaw)
+	w.Write(badgeRaw)
 }
