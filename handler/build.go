@@ -79,7 +79,7 @@ func PostBuild(c web.C, w http.ResponseWriter, r *http.Request) {
 	// get the build from the datastore. If it does not
 	// yet exist, populate fields required upon creation.
 	build, err := datastore.GetBuild(ctx, name, number, channel, sdk)
-	if err != nil && len(force) == 0 {
+	if err == nil && len(force) == 0 {
 		w.WriteHeader(http.StatusConflict)
 		return
 	} else if err != nil {

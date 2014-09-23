@@ -1,6 +1,8 @@
 package director
 
 import (
+	"log"
+	"runtime/debug"
 	"sync"
 
 	"code.google.com/p/go.net/context"
@@ -34,7 +36,9 @@ func (d *Director) Do(c context.Context, work *worker.Work) {
 // available worker to process work.
 func (d *Director) do(c context.Context, work *worker.Work) {
 	defer func() {
-		recover()
+		if e := recover(); e != nil {
+			log.Printf("%s: %s", e, debug.Stack())
+		}
 	}()
 
 	d.markPending(work)
