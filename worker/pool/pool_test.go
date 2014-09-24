@@ -57,6 +57,9 @@ func TestPool(t *testing.T) {
 			pool.Release(&w)
 			g.Assert(len(pool.workers)).Equal(0)
 			g.Assert(len(pool.workerc)).Equal(0)
+			pool.Release(nil)
+			g.Assert(len(pool.workers)).Equal(0)
+			g.Assert(len(pool.workerc)).Equal(0)
 		})
 
 		g.It("Should list all allocated workers", func() {

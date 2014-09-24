@@ -13,11 +13,11 @@
 		});
 
 		// check for new data every 5 minutes
-		$interval(function() {
-			feed.get().then(function(recent){
-				$scope.recent = recent.data;
-			});
-		}, 60000);
+		//$interval(function() {
+		//	feed.get().then(function(recent){
+		//		$scope.recent = recent.data;
+		//	});
+		//}, 60000);
 	}
 
 	angular

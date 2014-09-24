@@ -27,27 +27,38 @@ func New() *Director {
 
 // Do processes the work request async.
 func (d *Director) Do(c context.Context, work *worker.Work) {
-	go func() {
-		d.do(c, work)
-	}()
-}
-
-// do is a blocking function that waits for an
-// available worker to process work.
-func (d *Director) do(c context.Context, work *worker.Work) {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Printf("%s: %s", e, debug.Stack())
 		}
 	}()
 
+	d.do(c, work)
+}
+
+// do is a blocking function that waits for an
+// available worker to process work.
+func (d *Director) do(c context.Context, work *worker.Work) {
 	d.markPending(work)
 	var pool = pool.FromContext(c)
 	var worker = <-pool.Reserve()
+
+	//	var worker worker.Worker
+	//
+	//	// waits for an available worker. This is a blocking
+	//	// operation and will reject any nil workers to avoid
+	//	// a potential panic.
+	//	select {
+	//	case worker = <-pool.Reserve():
+	//		if worker != nil {
+	//			break
+	//		}
+	//	}
+
 	d.markStarted(work, worker)
 	worker.Do(c, work)
 	d.markComplete(work)
-	go pool.Release(worker)
+	pool.Release(worker)
 }
 
 // GetStarted returns a list of all jobs that
