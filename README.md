@@ -3,38 +3,54 @@ drone-dart
 
 Drone continuous delivery for Dart's Pub manager
 
+## Runtime
 
+Install the following runtime requirements:
 
-## Storage Setup
+* libsqlite3-dev
+* docker
+* mysql (optional)
 
-Create a bucket:
+## Building
 
-```
-gsutil mb -l US gs://BUCKET_NAME
-```
+Use the following commands to build from source:
 
-Ensure the bucket is public read write:
-
-```
-gsutil -m setacl -R -a public-read gs://BUCKET_NAME
-gsutil -m setdefacl public-read gs://BUCKET_NAME
-```
-
-Setup CORS by uploading the following `_cors.json` file to your bucket:
-
-```
-[
-    {
-      "origin": ["*"],
-      "responseHeader": ["x-meta-goog-custom", "Access-Control-Allow-Origin"],
-      "method": ["GET", "HEAD", "DELETE"],
-      "maxAgeSeconds": 3600
-    }
-]
+```sh
+make deps
+make
 ```
 
-And then execute the following command:
+To compile style sheets (requires less):
 
+```sh
+make lessc
 ```
-gsutil cors set cors.json gs://BUCKET_NAME
+
+To bundle static files inside the binary:
+
+```sh
+make embed
 ```
+
+## Running
+
+Run with local configuration:
+
+```sh
+./drone-dart
+```
+
+Customize the Basic Auth settings used to restict access to the system.
+The default username / password is `admin:admin` primarily intended for
+local testing. To customize:
+
+```sh
+./drone-dart --password="user:password"
+```
+
+Customize the database. The default database is SQLite3 primarily intended
+for local testing. To customize or use an alternate database like MySQL:
+
+```sh
+./drone-dart --driver="mysql" --datastore="user:password@/dbname"
+``` 
