@@ -46,6 +46,15 @@ func New() *Docker {
 	}
 }
 
+func NewHost(host string) *Docker {
+	return &Docker{
+		UUID:    uuid.New(),
+		Kind:    dockerKind,
+		Created: time.Now().UTC().Unix(),
+		docker:  docker.NewHost(host),
+	}
+}
+
 func (d *Docker) Do(c context.Context, r *worker.Work) {
 	// ensure that we can recover from any panics to
 	// avoid bringing down the entire application.

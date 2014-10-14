@@ -32,6 +32,11 @@ var (
 	driver     string
 	datasource string
 
+	// docker host that should be used to run builds.
+	// use primarily for testing purposes. For production,
+	// add workers through the endpoint.
+	dockerhost string
+
 	// database connection
 	db meddler.DB
 
@@ -45,18 +50,22 @@ var (
 func main() {
 
 	// parse flag variables
+	flag.StringVar(&dockerhost, "docker", "", "")
 	flag.StringVar(&password, "password", "admin:admin", "")
 	flag.StringVar(&driver, "driver", "sqlite3", "")
 	flag.StringVar(&datasource, "datasource", "pub.sqlite", "")
 	flag.Parse()
 
-	// Create the worker, director and builders
+	// Create the worker pool and director.
 	workers = pool.New()
-	workers.Allocate(docker.New())
-	workers.Allocate(docker.New())
-	workers.Allocate(docker.New())
-	workers.Allocate(docker.New())
 	worker = director.New()
+
+	// Create the Docker worker is provided via
+	// the commandline. Else it is expected that
+	// workers are added via the REST endpoint.
+	if len(dockerhost) != 0 {
+		workers.Allocate(docker.NewHost(dockerhost))
+	}
 
 	// Create the database connection
 	db = datasql.MustConnect(driver, datasource)
