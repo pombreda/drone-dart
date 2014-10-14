@@ -1,4 +1,4 @@
-package blobstore
+package capability
 
 import (
 	"code.google.com/p/go.net/context"

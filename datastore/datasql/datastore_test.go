@@ -9,6 +9,7 @@ import (
 
 func TestBuildstore(t *testing.T) {
 	db := MustConnect("sqlite3", ":memory:")
+	defer db.Close()
 	ds := New(db)
 
 	g := goblin.Goblin(t)

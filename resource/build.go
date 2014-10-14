@@ -13,15 +13,3 @@ type Build struct {
 	Created  int64  `json:"created"      meddler:"build_created"      orm:"column(build_created)"`
 	Updated  int64  `json:"updated"      meddler:"build_updated"      orm:"column(build_updated)"`
 }
-
-func (*Build) TableName() string { return "builds" }
-func (*Build) TableIndex() [][]string {
-	return [][]string{
-		[]string{"Name"},
-		[]string{"Name", "Version"},
-		[]string{"Name", "Version", "Channel"},
-	}
-}
-func (*Build) TableUnique() [][]string {
-	return [][]string{[]string{"Name", "Version", "Channel", "SDK"}}
-}
