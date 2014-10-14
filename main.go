@@ -71,12 +71,11 @@ func main() {
 	db = datasql.MustConnect(driver, datasource)
 
 	// Include static resources
-	assets := rice.MustFindBox("website").HTTPBox()
-	assetserve := http.FileServer(rice.MustFindBox("website").HTTPBox())
-	http.Handle("/static/", http.StripPrefix("/static", assetserve))
-	goji.Get("/", func(c web.C, w http.ResponseWriter, r *http.Request) {
-		w.Write(assets.MustBytes("index.html"))
-	})
+	assets := http.FileServer(rice.MustFindBox("website").HTTPBox())
+	http.Handle("/static/", http.StripPrefix("/static", assets))
+	goji.Get("/:name/:number/:channel/:sdk", handler.GetBuildPage)
+	goji.Get("/:name/:number/:channel", handler.GetBuildPage)
+	goji.Get("/", handler.GetHomePage)
 
 	// Add routes to the global handler
 	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
