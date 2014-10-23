@@ -21,13 +21,13 @@ type Build struct {
 // Returns the Started Date as an ISO8601
 // formatted string.
 func (b *Build) StartedString() string {
-	return time.Unix(b.Start, 0).Format("2006-01-02T15:04:05Z")
+	return time.Unix(b.Start, 0).UTC().Format("2006-01-02T15:04:05Z")
 }
 
 // Returns the Started Date as an ISO8601
 // formatted string.
 func (b *Build) FinishedString() string {
-	return time.Unix(b.Finish, 0).Format("2006-01-02T15:04:05Z")
+	return time.Unix(b.Finish, 0).UTC().Format("2006-01-02T15:04:05Z")
 }
 
 // Returns true if the Build statis is Started
