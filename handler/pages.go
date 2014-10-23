@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/GeertJohan/go.rice"
 	"github.com/drone/drone-dart/datastore"
 	"github.com/drone/drone-dart/resource"
 	"github.com/goji/context"
@@ -12,15 +11,9 @@ import (
 )
 
 var (
-	buildTempl *template.Template
-	indexTempl *template.Template
+	BuildTempl *template.Template
+	IndexTempl *template.Template
 )
-
-func init() {
-	assets := rice.MustFindBox("../website").HTTPBox()
-	buildTempl = template.Must(template.New("_").Parse(assets.MustString("build.tmpl")))
-	indexTempl = template.Must(template.New("_").Parse(assets.MustString("index.tmpl")))
-}
 
 // GetBuildPage accepts a request to retrieve the build
 // output page for the package version, channel and SDK
@@ -55,12 +48,12 @@ func GetBuildPage(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buildTempl.Execute(w, struct {
+	BuildTempl.Execute(w, struct {
 		Build *resource.Build
 		Error error
 	}{build, err})
 }
 
 func GetHomePage(c web.C, w http.ResponseWriter, r *http.Request) {
-	indexTempl.Execute(w, nil)
+	IndexTempl.Execute(w, nil)
 }
