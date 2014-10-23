@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/base64"
 	"flag"
+	"fmt"
+	"html/template"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/drone/drone-dart/blobstore/blobsql"
@@ -36,6 +39,8 @@ var (
 	// use primarily for testing purposes. For production,
 	// add workers through the endpoint.
 	dockerhost string
+	dockercert string
+	dockerkey  string
 
 	// database connection
 	db meddler.DB
@@ -50,7 +55,9 @@ var (
 func main() {
 
 	// parse flag variables
-	flag.StringVar(&dockerhost, "docker", "", "")
+	flag.StringVar(&dockerhost, "docker-host", "", "")
+	flag.StringVar(&dockercert, "docker-cert", "", "")
+	flag.StringVar(&dockerkey, "docker-key", "", "")
 	flag.StringVar(&password, "password", "admin:admin", "")
 	flag.StringVar(&driver, "driver", "sqlite3", "")
 	flag.StringVar(&datasource, "datasource", "pub.sqlite", "")
@@ -64,18 +71,25 @@ func main() {
 	// the commandline. Else it is expected that
 	// workers are added via the REST endpoint.
 	if len(dockerhost) != 0 {
-		workers.Allocate(docker.NewHost(dockerhost))
+		var d, err = docker.New(dockerhost, dockercert, dockerkey)
+		if err != nil {
+			fmt.Println("ERROR creating Docker client.", err)
+			os.Exit(1)
+		}
+		workers.Allocate(d)
 	}
 
 	// Create the database connection
 	db = datasql.MustConnect(driver, datasource)
 
+	// Parse the Template files
+	templates := rice.MustFindBox("website")
+	handler.BuildTempl = template.Must(template.New("_").Parse(templates.MustString("build.tmpl")))
+	handler.IndexTempl = template.Must(template.New("_").Parse(templates.MustString("index.tmpl")))
+
 	// Include static resources
 	assets := http.FileServer(rice.MustFindBox("website").HTTPBox())
 	http.Handle("/static/", http.StripPrefix("/static", assets))
-	goji.Get("/:name/:number/:channel/:sdk", handler.GetBuildPage)
-	goji.Get("/:name/:number/:channel", handler.GetBuildPage)
-	goji.Get("/", handler.GetHomePage)
 
 	// Add routes to the global handler
 	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
@@ -90,10 +104,17 @@ func main() {
 	goji.Get("/api/work/started", handler.GetWorkStarted)
 	goji.Get("/api/work/pending", handler.GetWorkPending)
 	goji.Get("/api/work/assignments", handler.GetWorkAssigned)
+	goji.Delete("/api/workers/:id", handler.DelWorker)
+	goji.Post("/api/workers", handler.PostWorker)
 	goji.Get("/api/workers", handler.GetWorkers)
 
 	// Restricted operations
 	goji.Post("/sudo/api/build", handler.PostBuild)
+
+	// Main Pages
+	goji.Get("/:name/:number/:channel/:sdk", handler.GetBuildPage)
+	goji.Get("/:name/:number/:channel", handler.GetBuildPage)
+	goji.Get("/", handler.GetHomePage)
 
 	// Add middleware and serve
 	goji.Use(handler.SetHeaders)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/drone/drone-dart/worker"
 	"github.com/drone/drone-dart/worker/director"
+	"github.com/drone/drone-dart/worker/docker"
 	"github.com/drone/drone-dart/worker/pool"
 	"github.com/goji/context"
 	"github.com/zenazn/goji/web"
@@ -54,4 +55,55 @@ func GetWorkAssigned(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
 	d := worker.FromContext(ctx).(*director.Director)
 	json.NewEncoder(w).Encode(d.GetAssignemnts())
+}
+
+// PostWorker accepts a request to allocate a new
+// worker to the pool.
+//
+//     POST /api/workers
+//
+func PostWorker(c web.C, w http.ResponseWriter, r *http.Request) {
+	ctx := context.FromC(c)
+	pool := pool.FromContext(ctx)
+	opts := struct {
+		Host string
+		Cert []byte
+		Key  []byte
+	}{}
+
+	// read the worker data from the body
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&opts); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// create a new worker from the Docker client
+	client, err := docker.NewCert(opts.Host, opts.Cert, opts.Key)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	pool.Allocate(client)
+	w.WriteHeader(http.StatusOK)
+}
+
+// Delete accepts a request to delete a worker
+// from the pool.
+//
+//     DELETE /api/workers
+//
+func DelWorker(c web.C, w http.ResponseWriter, r *http.Request) {
+	ctx := context.FromC(c)
+	pool := pool.FromContext(ctx)
+	uuid := c.URLParams["id"]
+
+	for _, worker := range pool.List() {
+		if worker.(*docker.Docker).UUID != uuid {
+			pool.Deallocate(worker)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusNotFound)
 }

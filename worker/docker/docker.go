@@ -37,21 +37,28 @@ type Docker struct {
 	docker *docker.Client
 }
 
-func New() *Docker {
-	return &Docker{
-		UUID:    uuid.New(),
-		Kind:    dockerKind,
-		Created: time.Now().UTC().Unix(),
-		docker:  docker.New(),
+func New(host, cert, key string) (*Docker, error) {
+	client, err := docker.NewHostCertFile(host, cert, key)
+	if err != nil {
+		return nil, err
 	}
+	return NewDocker(client), nil
 }
 
-func NewHost(host string) *Docker {
+func NewCert(host string, cert, key []byte) (*Docker, error) {
+	client, err := docker.NewHostCert(host, cert, key)
+	if err != nil {
+		return nil, err
+	}
+	return NewDocker(client), nil
+}
+
+func NewDocker(client *docker.Client) *Docker {
 	return &Docker{
 		UUID:    uuid.New(),
 		Kind:    dockerKind,
 		Created: time.Now().UTC().Unix(),
-		docker:  docker.NewHost(host),
+		docker:  client,
 	}
 }
 
