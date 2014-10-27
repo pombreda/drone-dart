@@ -30,9 +30,11 @@ const dockerKind = "docker"
 var mu sync.Mutex
 
 type Docker struct {
-	UUID    string `json:"uuid"`
-	Kind    string `json:"type"`
-	Created int64  `json:"created"`
+	UUID    string   `json:"uuid"`
+	Kind    string   `json:"type"`
+	Host    string   `json:"host"`
+	Tags    []string `json:"tags"`
+	Created int64    `json:"created"`
 
 	docker *docker.Client
 }

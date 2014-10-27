@@ -104,11 +104,11 @@ func main() {
 	goji.Get("/api/work/started", handler.GetWorkStarted)
 	goji.Get("/api/work/pending", handler.GetWorkPending)
 	goji.Get("/api/work/assignments", handler.GetWorkAssigned)
-	goji.Delete("/api/workers/:id", handler.DelWorker)
-	goji.Post("/api/workers", handler.PostWorker)
 	goji.Get("/api/workers", handler.GetWorkers)
 
 	// Restricted operations
+	goji.Delete("/sudo/api/workers/:id", handler.DelWorker)
+	goji.Post("/sudo/api/workers", handler.PostWorker)
 	goji.Post("/sudo/api/build", handler.PostBuild)
 
 	// Main Pages

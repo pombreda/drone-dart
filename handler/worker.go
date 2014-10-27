@@ -60,20 +60,22 @@ func GetWorkAssigned(c web.C, w http.ResponseWriter, r *http.Request) {
 // PostWorker accepts a request to allocate a new
 // worker to the pool.
 //
-//     POST /api/workers
+//     POST /sudo/api/workers
 //
 func PostWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
 	pool := pool.FromContext(ctx)
 	opts := struct {
-		Host string
-		Cert []byte
-		Key  []byte
+		Host string   `json:"host"`
+		Cert []byte   `json:"cert"`
+		Key  []byte   `json:"key"`
+		Tags []string `json:"tags"`
 	}{}
 
 	// read the worker data from the body
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&opts); err != nil {
+		println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -84,6 +86,11 @@ func PostWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// append user-friendly data to the host
+	client.Host = opts.Host
+	client.Tags = opts.Tags
+
 	pool.Allocate(client)
 	w.WriteHeader(http.StatusOK)
 }
@@ -91,7 +98,7 @@ func PostWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 // Delete accepts a request to delete a worker
 // from the pool.
 //
-//     DELETE /api/workers
+//     DELETE /sudo/api/workers/:id
 //
 func DelWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
@@ -99,7 +106,7 @@ func DelWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 	uuid := c.URLParams["id"]
 
 	for _, worker := range pool.List() {
-		if worker.(*docker.Docker).UUID != uuid {
+		if worker.(*docker.Docker).UUID == uuid {
 			pool.Deallocate(worker)
 			w.WriteHeader(http.StatusNoContent)
 			return
