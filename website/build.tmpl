@@ -41,7 +41,6 @@
 					</h1>
 				</header>
 				<section>
-					{{ if gt .Build.Finish 0 }}
 					<div data-status="{{ .Build.Status }}">
 						{{ if eq .Build.Status "Success" }}<div class="success">success testing <span>{{ .Build.Version }}</span> using <span>{{ .Build.Channel }} {{ .Build.SDK }}</span> <abbr class="timeago" title="{{ .Build.FinishedString }}"></abbr></div>{{ end }}
 						{{ if eq .Build.Status "Warning" }}<div class="warning">no tests found for <span>{{ .Build.Version }}</span> using <span>{{ .Build.Channel }} {{ .Build.SDK }}</span> <abbr class="timeago" title="{{ .Build.FinishedString }}"></abbr></div>{{ end }}
@@ -51,6 +50,7 @@
 						{{ if eq .Build.Status "Pending" }}<div class="running">testing <span>{{ .Build.Version }}</span> using <span>{{ .Build.Channel }} {{ .Build.SDK }}</span></div>{{ end }}
 					</div>
 
+					{{ if .Build.IsRunning | not }}
 					<pre></pre>
 					{{ end }}
 				</section>

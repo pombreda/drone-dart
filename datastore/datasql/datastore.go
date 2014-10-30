@@ -57,6 +57,12 @@ func (d *Datastore) DelBuild(build *resource.Build) error {
 	return err
 }
 
+// DelBuilds marks all Pending and Started builds as killed
+func (d *Datastore) KillBuilds() error {
+	var _, err = d.Exec(killBuilds)
+	return err
+}
+
 func New(db meddler.DB) *Datastore {
 	return &Datastore{db}
 }

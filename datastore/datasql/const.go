@@ -36,6 +36,12 @@ const (
 		WHERE build_id = ?;
 		`
 
+	killBuilds = `
+		UPDATE builds
+		SET build_status = 'Killed'
+		WHERE build_status IN ('Pending', 'Started');
+		`
+
 	queryVersion = `
 		SELECT build_channel, build_sdk, build_sdk_revision
 		FROM builds
