@@ -81,6 +81,7 @@ func main() {
 
 	// Create the database connection
 	db = datasql.MustConnect(driver, datasource)
+	datasql.New(db).KillBuilds()
 
 	// Parse the Template files
 	templates := rice.MustFindBox("website")
