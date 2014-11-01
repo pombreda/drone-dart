@@ -30,6 +30,20 @@ type Datastore interface {
 
 	// DelBuild deletes a Build in the datastore.
 	DelBuild(build *resource.Build) error
+
+	// GetWorker retrieves the named worker machine from
+	// the database.
+	//GetWorker() error
+
+	// GetWorkers retrieves a list of all worker machines
+	// from the datasbase.
+	//GetWorkers() error
+
+	// PutWorker adds a worker machine to the database.
+	//PutWorker() error
+
+	// DelWorker removes a worker machine form the database.
+	//DelWorker() error
 }
 
 // GetFeed retrieves a list of recent builds.

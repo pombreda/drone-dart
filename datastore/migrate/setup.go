@@ -23,6 +23,13 @@ func Setup(tx migration.LimitedTx) error {
 	return nil
 }
 
+// Migrate_20141101 patches the database to include
+// a table for persisting worker nodes.
+func Migrate_20141101(tx migration.LimitedTx) error {
+	_, err := tx.Exec(transform(workerTable))
+	return err
+}
+
 var buildTable = `
 CREATE TABLE IF NOT EXISTS builds (
 	 build_id            INTEGER PRIMARY KEY AUTOINCREMENT
@@ -59,5 +66,19 @@ CREATE TABLE IF NOT EXISTS blobs (
 	,blob_path    VARCHAR(255)
 	,blob_data    BLOB
 	,UNIQUE(blob_path)
+);
+`
+
+var workerTable = `
+CREATE TABLE IN NOT EXISTS workers (
+	 worker_id      INTEGER PRIMARY KEY AUTOINCREMENT
+	,worker_name    VARCHAR(255)
+	,worker_host    VARCHAR(255)
+	,worker_cert    BLOB
+	,worker_key     BLOB
+	,worker_ca      BLOB
+	,worker_created INTEGER
+	,worker_updated INTEGER
+	,UNIQUE(worker_name)
 );
 `
