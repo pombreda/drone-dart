@@ -73,6 +73,7 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 		}
 	}()
 
+	r.Build.Started = time.Now().UTC().Unix()
 	r.Build.Status = resource.StatusStarted
 	if err := datastore.PostBuild(c, r.Build); err != nil {
 		log.Println("Error updating build status to started", err)
@@ -127,7 +128,7 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 	builder.Build = script
 	builder.Build.Image = imageName
 	builder.Stdout = &buf
-	builder.Timeout = time.Duration(1800) * time.Second
+	builder.Timeout = time.Duration(900) * time.Second
 	builder.Repo = &repo.Repo{
 		Path:   dir,
 		Name:   name,
@@ -135,8 +136,12 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 		Dir:    filepath.Join("/var/cache/drone/src", name),
 	}
 
+	log.Println("executing build", name, version)
+
 	// run the build
 	err = builder.Run()
+
+	log.Println("finished executing build", name, version)
 
 	// update the build status based on the results
 	// from the build runner.
@@ -158,10 +163,15 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 		r.Build.Channel,
 		r.Build.SDK,
 	)
+
+	log.Println("archiving build output", name, version)
+
 	if err := blobstore.Put(c, blobkey, buf.Bytes()); err != nil {
 		log.Println(err)
 		return
 	}
+
+	log.Println("finished archiving build output", name, version)
 
 	// update the build in the datastore
 	r.Build.Status = resource.StatusSuccess
@@ -173,6 +183,8 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 		r.Build.Status = resource.StatusWarning
 	}
 
+	log.Println("persisting build results", name, version)
+
 	if err := datastore.PostBuild(c, r.Build); err != nil {
 		log.Println(err)
 		return
@@ -182,17 +194,20 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 }
 
 func createImage(cli *docker.Client, channel string, revision int64) (string, error) {
-	mu.Lock()
-	defer mu.Unlock()
 
 	// based image name
 	image := fmt.Sprintf("bradrydzewski/dart:%v-%v", channel, revision)
+
+	log.Println("Checking for build image", image)
 
 	// only create the image if it does not already exist
 	_, err := cli.Images.Inspect(image)
 	if err == nil {
 		return image, nil
 	}
+
+	//mu.Lock()
+	//defer mu.Unlock()
 
 	log.Println("Upgrading build image", image)
 
@@ -208,11 +223,15 @@ func createImage(cli *docker.Client, channel string, revision int64) (string, er
 	ioutil.WriteFile(filepath.Join(tmp, "Dockerfile"), []byte(fmt.Sprintf(dockerfile, channel, revision)), 0777)
 	ioutil.WriteFile(filepath.Join(tmp, "dart.sh"), []byte(envs), 0777)
 
+	log.Println("Building build image", image)
+
 	// build the image
 	err = cli.Images.Build(image, tmp)
 	if err != nil {
 		return image, err
 	}
+
+	log.Println("Completing build image", image)
 
 	return image, nil
 }
