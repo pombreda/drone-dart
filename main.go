@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 
 	"github.com/drone/drone-dart/blobstore/blobsql"
 	"github.com/drone/drone-dart/datastore/datasql"
 	"github.com/drone/drone-dart/handler"
+	"github.com/drone/drone-dart/router"
 	"github.com/drone/drone-dart/worker/director"
 	"github.com/drone/drone-dart/worker/docker"
 	"github.com/drone/drone-dart/worker/pool"
@@ -20,7 +22,6 @@ import (
 	"github.com/GeertJohan/go.rice"
 	webcontext "github.com/goji/context"
 	"github.com/russross/meddler"
-	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
 )
 
@@ -92,36 +93,16 @@ func main() {
 	assets := http.FileServer(rice.MustFindBox("website").HTTPBox())
 	http.Handle("/static/", http.StripPrefix("/static", assets))
 
-	// Add routes to the global handler
-	goji.Get("/api/badges/:name/:number/channel/:channel/sdk/:sdk/status.svg", handler.GetBadge)
-	goji.Get("/api/badges/:name/:number/channel/:channel/status.svg", handler.GetBadge)
-	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk/stdout.txt", handler.GetOutput)
-	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/latest", handler.GetBuildLatest)
-	goji.Get("/api/packages/:name/:number/channel/:channel/sdk/:sdk", handler.GetBuild)
-	goji.Get("/api/channel/:channel", handler.GetChannel)
-	goji.Get("/api/feed", handler.GetFeed)
+	// Create the router and add middleware
+	mux := router.New()
+	mux.Use(handler.SetHeaders)
+	mux.Use(secureMiddleware)
+	mux.Use(contextMiddleware)
+	http.Handle("/", mux)
 
-	// Add routes for querying the build queue (workers)
-	goji.Get("/api/work/started", handler.GetWorkStarted)
-	goji.Get("/api/work/pending", handler.GetWorkPending)
-	goji.Get("/api/work/assignments", handler.GetWorkAssigned)
-	goji.Get("/api/workers", handler.GetWorkers)
-
-	// Restricted operations
-	goji.Delete("/sudo/api/workers/:id", handler.DelWorker)
-	goji.Post("/sudo/api/workers", handler.PostWorker)
-	goji.Post("/sudo/api/build", handler.PostBuild)
-
-	// Main Pages
-	goji.Get("/:name/:number/:channel/:sdk", handler.GetBuildPage)
-	goji.Get("/:name/:number/:channel", handler.GetBuildPage)
-	goji.Get("/", handler.GetHomePage)
-
-	// Add middleware and serve
-	goji.Use(handler.SetHeaders)
-	goji.Use(secureMiddleware)
-	goji.Use(contextMiddleware)
-	goji.Serve()
+	if err := http.ListenAndServe(":8000", nil); err != nil {
+		fmt.Println("ERROR starting web server.", err)
+	}
 }
 
 // contextMiddleware creates a new go.net/context and
