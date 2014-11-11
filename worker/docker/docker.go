@@ -73,7 +73,7 @@ func (d *Docker) Do(c context.Context, r *worker.Work) {
 		}
 	}()
 
-	r.Build.Started = time.Now().UTC().Unix()
+	r.Build.Start = time.Now().UTC().Unix()
 	r.Build.Status = resource.StatusStarted
 	if err := datastore.PostBuild(c, r.Build); err != nil {
 		log.Println("Error updating build status to started", err)
