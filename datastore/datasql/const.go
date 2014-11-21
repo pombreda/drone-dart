@@ -1,6 +1,9 @@
 package datasql
 
-const tableBuild = "builds"
+const (
+	tableBuild  = "builds"
+	tableServer = "workers"
+)
 
 const (
 	queryFeed = `
@@ -51,5 +54,21 @@ const (
 			WHERE build_channel = ?
 		)
 		LIMIT 1
+		`
+
+	queryServer = `
+		SELECT *
+		FROM workers
+		WHERE worker_name = ?;
+		`
+
+	queryServers = `
+		SELECT *
+		FROM workers;
+		`
+
+	deleteServer = `
+		DELETE FROM workers
+		WHERE worker_id = ?;
 		`
 )

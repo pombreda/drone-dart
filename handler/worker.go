@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/drone/drone-dart/datastore"
+	"github.com/drone/drone-dart/resource"
 	"github.com/drone/drone-dart/worker"
 	"github.com/drone/drone-dart/worker/director"
 	"github.com/drone/drone-dart/worker/docker"
@@ -65,31 +67,33 @@ func GetWorkAssigned(c web.C, w http.ResponseWriter, r *http.Request) {
 func PostWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
 	pool := pool.FromContext(ctx)
-	opts := struct {
-		Host string   `json:"host"`
-		Cert []byte   `json:"cert"`
-		Key  []byte   `json:"key"`
-		Tags []string `json:"tags"`
-	}{}
+	server := resource.Server{}
 
 	// read the worker data from the body
 	defer r.Body.Close()
-	if err := json.NewDecoder(r.Body).Decode(&opts); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&server); err != nil {
 		println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	// add the worker to the database
+	err := datastore.PutServer(ctx, &server)
+	if err != nil {
+		println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// create a new worker from the Docker client
-	client, err := docker.NewCert(opts.Host, opts.Cert, opts.Key)
+	client, err := docker.NewCert(server.Host, []byte(server.Cert), []byte(server.Key))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// append user-friendly data to the host
-	client.Host = opts.Host
-	client.Tags = opts.Tags
+	client.Host = client.Host
 
 	pool.Allocate(client)
 	w.WriteHeader(http.StatusOK)
@@ -104,6 +108,18 @@ func DelWorker(c web.C, w http.ResponseWriter, r *http.Request) {
 	ctx := context.FromC(c)
 	pool := pool.FromContext(ctx)
 	uuid := c.URLParams["id"]
+
+	server, err := datastore.GetServer(ctx, uuid)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	err = datastore.DelServer(ctx, server)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	for _, worker := range pool.List() {
 		if worker.(*docker.Docker).UUID == uuid {

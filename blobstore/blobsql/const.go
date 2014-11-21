@@ -15,4 +15,10 @@ const (
 		DELETE FROM blobs
 		WHERE blob_path = ?;
 		`
+
+	listBlobs = `
+		SELECT *
+		FROM blobs
+		WHERE blob_path LIKE ?;
+		`
 )

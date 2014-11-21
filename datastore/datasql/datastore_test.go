@@ -7,18 +7,19 @@ import (
 	"github.com/franela/goblin"
 )
 
-func TestBuildstore(t *testing.T) {
+func TestDatastore(t *testing.T) {
 	db := MustConnect("sqlite3", ":memory:")
 	defer db.Close()
 	ds := New(db)
 
 	g := goblin.Goblin(t)
-	g.Describe("Buildstore", func() {
+	g.Describe("Datastore", func() {
 
 		// before each test be sure to purge the package,
 		// version, and build table data from the database.
 		g.BeforeEach(func() {
 			db.Exec("DELETE FROM builds")
+			db.Exec("DELETE FROM workers")
 		})
 
 		g.It("Should Put a Build", func() {
@@ -105,6 +106,50 @@ func TestBuildstore(t *testing.T) {
 			ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "dev", SDK: "1.6.0"})
 			err := ds.PutBuild(&resource.Build{Name: "foo", Version: "1.0.0", Channel: "dev", SDK: "1.6.0"})
 			g.Assert(err != nil).IsTrue()
+		})
+
+		g.It("Should Put a Server", func() {
+			server := resource.Server{Name: "mycomputer", Host: "127.0.0.1"}
+			err := ds.PutServer(&server)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(server.ID != 0).IsTrue()
+		})
+
+		g.It("Should Get a Server", func() {
+			ds.PutServer(&resource.Server{
+				Name: "mycomputer",
+				Host: "127.0.0.1",
+			})
+			server, err := ds.GetServer("mycomputer")
+			g.Assert(err == nil).IsTrue()
+			g.Assert(server.ID != 0).IsTrue()
+			g.Assert(server.Name).Equal("mycomputer")
+		})
+
+		g.It("Should Get a Server List", func() {
+			ds.PutServer(&resource.Server{Name: "mycomputer1", Host: "127.0.0.1"})
+			ds.PutServer(&resource.Server{Name: "mycomputer2", Host: "127.0.0.1"})
+			servers, err := ds.GetServers()
+			g.Assert(err == nil).IsTrue()
+			g.Assert(len(servers)).Equal(2)
+		})
+
+		g.It("Should Not Put a Server with Duplicate Name", func() {
+			ds.PutServer(&resource.Server{Name: "mycomputer", Host: "127.0.0.1"})
+			err := ds.PutServer(&resource.Server{Name: "mycomputer", Host: "127.0.0.1"})
+			g.Assert(err != nil).IsTrue()
+			servers, _ := ds.GetServers()
+			g.Assert(len(servers)).Equal(1)
+		})
+
+		g.It("Should Delete a Server", func() {
+			server := resource.Server{Name: "mycomputer", Host: "127.0.0.1"}
+			err1 := ds.PutServer(&server)
+			_, err2 := ds.GetServer(server.Name)
+			err3 := ds.DelServer(&server)
+			g.Assert(err1 == nil).IsTrue()
+			g.Assert(err2 == nil).IsTrue()
+			g.Assert(err3 == nil).IsTrue()
 		})
 	})
 }

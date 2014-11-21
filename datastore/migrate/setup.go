@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS blobs (
 `
 
 var workerTable = `
-CREATE TABLE IN NOT EXISTS workers (
+CREATE TABLE IF NOT EXISTS workers (
 	 worker_id      INTEGER PRIMARY KEY AUTOINCREMENT
 	,worker_name    VARCHAR(255)
 	,worker_host    VARCHAR(255)

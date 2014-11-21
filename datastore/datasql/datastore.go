@@ -63,6 +63,33 @@ func (d *Datastore) KillBuilds() error {
 	return err
 }
 
+// GetServer retrieves the named worker machine from
+// the database.
+func (d *Datastore) GetServer(name string) (*resource.Server, error) {
+	var server = resource.Server{}
+	var err = meddler.QueryRow(d, &server, queryServer, name)
+	return &server, err
+}
+
+// GetServers retrieves a list of all worker machines
+// from the datasbase.
+func (d *Datastore) GetServers() ([]*resource.Server, error) {
+	var servers = []*resource.Server{}
+	var err = meddler.QueryAll(d, &servers, queryServers)
+	return servers, err
+}
+
+// PutServer adds a worker machine to the database.
+func (d *Datastore) PutServer(server *resource.Server) error {
+	return meddler.Save(d, tableServer, server)
+}
+
+// DelServer removes a worker machine form the database.
+func (d *Datastore) DelServer(server *resource.Server) error {
+	var _, err = d.Exec(deleteServer, server.ID)
+	return err
+}
+
 func New(db meddler.DB) *Datastore {
 	return &Datastore{db}
 }

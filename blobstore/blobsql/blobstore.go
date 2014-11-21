@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/drone/drone-dart/resource"
 	"github.com/russross/meddler"
@@ -49,6 +50,20 @@ func (b *Blobstore) Put(path string, data []byte) error {
 func (b *Blobstore) PutReader(path string, r io.Reader) error {
 	var data, _ = ioutil.ReadAll(r)
 	return b.Put(path, data)
+}
+
+// Search is a helper function that searches for text matches
+// at the specified path wildcard.
+func (b *Blobstore) Search(path, query string) []string {
+	var keys []string
+	var blobs = []*resource.Blob{}
+	meddler.QueryAll(b, &blobs, listBlobs, path)
+	for _, blob := range blobs {
+		if strings.Contains(blob.Data, query) {
+			keys = append(keys, blob.Path)
+		}
+	}
+	return keys
 }
 
 func New(db meddler.DB) *Blobstore {

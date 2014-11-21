@@ -31,19 +31,19 @@ type Datastore interface {
 	// DelBuild deletes a Build in the datastore.
 	DelBuild(build *resource.Build) error
 
-	// GetWorker retrieves the named worker machine from
+	// GetServer retrieves the named worker machine from
 	// the database.
-	//GetWorker() error
+	GetServer(name string) (*resource.Server, error)
 
-	// GetWorkers retrieves a list of all worker machines
+	// GetServers retrieves a list of all worker machines
 	// from the datasbase.
-	//GetWorkers() error
+	GetServers() ([]*resource.Server, error)
 
-	// PutWorker adds a worker machine to the database.
-	//PutWorker() error
+	// PutServer adds a worker machine to the database.
+	PutServer(server *resource.Server) error
 
-	// DelWorker removes a worker machine form the database.
-	//DelWorker() error
+	// DelServer removes a worker machine form the database.
+	DelServer(server *resource.Server) error
 }
 
 // GetFeed retrieves a list of recent builds.
@@ -83,4 +83,26 @@ func PutBuild(c context.Context, build *resource.Build) error {
 // DelBuild deletes a Build in the datastore.
 func DelBuild(c context.Context, build *resource.Build) error {
 	return FromContext(c).PostBuild(build)
+}
+
+// GetServer retrieves the named worker machine from
+// the database.
+func GetServer(c context.Context, name string) (*resource.Server, error) {
+	return FromContext(c).GetServer(name)
+}
+
+// GetServers retrieves a list of all worker machines
+// from the datasbase.
+func GetServers(c context.Context) ([]*resource.Server, error) {
+	return FromContext(c).GetServers()
+}
+
+// PutServer adds a worker machine to the database.
+func PutServer(c context.Context, server *resource.Server) error {
+	return FromContext(c).PutServer(server)
+}
+
+// DelServer removes a worker machine form the database.
+func DelServer(c context.Context, server *resource.Server) error {
+	return FromContext(c).PutServer(server)
 }
